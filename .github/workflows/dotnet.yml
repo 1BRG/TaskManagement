@@ -20,9 +20,8 @@ jobs:
         global-json-file: 'TaskManager/TaskManager/global.json'
 
     - name: Restore dependencies
-      run: dotnet restore TaskManagement/TaskManagement.csproj
+      run: dotnet restore TaskManager/TaskManager.csproj
     - name: Build
-      run: dotnet build --no-restore TaskManagement/TaskManagement.csproj
+      run: dotnet build --no-restore TaskManager/TaskManager.csproj
     - name: Test
-      run: dotnet test --no-build --verbosity normal TaskManagement/TaskManagement.csproj
-
+      run: dotnet test --no-build --verbosity normal TaskManager/TaskManager.csproj
