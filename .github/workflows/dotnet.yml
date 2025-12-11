@@ -8,20 +8,30 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: TaskManager/TaskManager
 
     steps:
     - uses: actions/checkout@v3
+
+    - name: Show directory (debug)
+      run: |
+        pwd
+        ls -la
+
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: '10.0.x'
-        global-json-file: 'TaskManager/TaskManager/global.json'
+        global-json-file: 'global.json'
 
     - name: Restore dependencies
-      run: dotnet restore TaskManager/TaskManager.csproj
+      run: dotnet restore
+
     - name: Build
-      run: dotnet build --no-restore TaskManager/TaskManager.csproj
+      run: dotnet build --configuration Release --no-restore
+
     - name: Test
-      run: dotnet test --no-build --verbosity normal TaskManager/TaskManager.csproj
+      run: dotnet test --verbosity normal
