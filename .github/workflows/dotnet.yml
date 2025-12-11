@@ -1,0 +1,27 @@
+﻿name: .NET
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '10.0.x' 
+        global-json-file: TaskManagement/global.json
+    - name: Restore dependencies
+      run: dotnet restore TaskManagement/TaskManagement.csproj
+    - name: Build
+      run: dotnet build --no-restore TaskManagement/TaskManagement.csproj
+    - name: Test
+      run: dotnet test --no-build --verbosity normal TaskManagement/TaskManagement.csproj
+
