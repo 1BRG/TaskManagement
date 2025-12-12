@@ -365,3 +365,6 @@ FodyWeavers.xsd
 # Rider / JetBrains specific
 .idea/
 *.sln.iml
+
+# Database
+*.db
