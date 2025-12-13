@@ -20,6 +20,16 @@ namespace TaskManagement.Models
         public TaskStatusEnum Status { get; set; } = TaskStatusEnum.NotStarted;
 
         [Required]
+        public PriorityEnum Priority { get; set; } = PriorityEnum.Medium;
+
+        public string? ColumnName { get; set; } // For Trello Board mapping
+
+        public int Order { get; set; } // For visual sorting
+
+
+        public bool IsCompleted { get; set; }
+
+        [Required]
         public DateTime StartDate { get; set; }
 
         [Required]
