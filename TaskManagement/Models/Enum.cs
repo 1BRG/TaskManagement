@@ -12,4 +12,11 @@
         Image,
         Video
     }
+
+    public enum PriorityEnum
+    {
+        Low,
+        Medium,
+        High
+    }
 }
