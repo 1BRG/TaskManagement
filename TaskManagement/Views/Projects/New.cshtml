@@ -1,0 +1,29 @@
+﻿@model TaskManagement.Models.Project
+
+@{
+    ViewData["Title"] = "Proiect Nou";
+}
+
+<h2>Creează un Proiect Nou</h2>
+<hr />
+
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="New" method="post">
+            <div class="form-group mb-3">
+                <label asp-for="Title" class="control-label">Titlu Proiect</label>
+                <input asp-for="Title" class="form-control" placeholder="Ex: Aplicație Web" />
+                <span asp-validation-for="Title" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Description" class="control-label">Descriere</label>
+                <textarea asp-for="Description" class="form-control" rows="4"></textarea>
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Salvează Proiectul</button>
+            <a asp-controller="Dashboard" asp-action="Index" class="btn btn-secondary">Anulează</a>
+        </form>
+    </div>
+</div>

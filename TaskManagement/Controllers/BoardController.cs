@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
@@ -23,7 +23,7 @@ namespace TaskManagement.Controllers
         public IActionResult Index(int id)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            
+
             // Sync Query with Include
             // Make sure to include Columns and Tasks for those columns
             var project = _context.Projects
@@ -47,7 +47,7 @@ namespace TaskManagement.Controllers
         public IActionResult AddCard(int projectId, int columnId, string title, PriorityEnum priority)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            
+
             // Validate Project ownership
             var project = _context.Projects.FirstOrDefault(p => p.Id == projectId && p.OrganizerId == userId);
             if (project == null) return Unauthorized();
@@ -62,7 +62,7 @@ namespace TaskManagement.Controllers
                 var task = new AppTask
                 {
                     Title = title,
-                    Description = "No description", 
+                    Description = "No description",
                     Priority = priority,
                     BoardColumnId = columnId,
                     ProjectId = projectId,
@@ -75,16 +75,16 @@ namespace TaskManagement.Controllers
                 _context.AppTasks.Add(task);
                 _context.SaveChanges();
             }
-            
+
             return RedirectToAction("Index", new { id = projectId });
         }
 
         [HttpPost]
         public IActionResult AddColumn(int projectId, string title)
         {
-             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-             var project = _context.Projects.Include(p => p.Columns).FirstOrDefault(p => p.Id == projectId && p.OrganizerId == userId);
-             if (project == null) return Unauthorized();
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var project = _context.Projects.Include(p => p.Columns).FirstOrDefault(p => p.Id == projectId && p.OrganizerId == userId);
+            if (project == null) return Unauthorized();
 
             if (!string.IsNullOrWhiteSpace(title))
             {
@@ -96,11 +96,11 @@ namespace TaskManagement.Controllers
                     ProjectId = projectId,
                     Order = maxOrder + 1
                 };
-                
+
                 _context.BoardColumns.Add(column);
                 _context.SaveChanges();
             }
-            
+
             return RedirectToAction("Index", new { id = projectId });
         }
 
@@ -108,11 +108,11 @@ namespace TaskManagement.Controllers
         public IActionResult MoveCard(int taskId, int targetColumnId, int index)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            
+
             var task = _context.AppTasks.Include(t => t.Project).FirstOrDefault(t => t.Id == taskId);
-            
+
             if (task == null) return NotFound();
-            if (task.Project.OrganizerId != userId) return Unauthorized(); 
+            if (task.Project.OrganizerId != userId) return Unauthorized();
 
             // Reordering logic
             var tasksInColumn = _context.AppTasks
@@ -121,10 +121,10 @@ namespace TaskManagement.Controllers
                 .ToList();
 
             task.BoardColumnId = targetColumnId;
-            
+
             if (index < 0) index = 0;
             if (index > tasksInColumn.Count) index = tasksInColumn.Count;
-            
+
             tasksInColumn.Insert(index, task);
 
             for (var i = 0; i < tasksInColumn.Count; i++)
@@ -133,7 +133,7 @@ namespace TaskManagement.Controllers
             }
 
             _context.SaveChanges();
-            
+
             return Ok();
         }
 
@@ -141,14 +141,14 @@ namespace TaskManagement.Controllers
         public IActionResult ToggleCard(int taskId)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-             
+
             var task = _context.AppTasks.Include(t => t.Project).FirstOrDefault(t => t.Id == taskId);
             if (task == null) return NotFound();
-             if (task.Project.OrganizerId != userId) return Unauthorized();
+            if (task.Project.OrganizerId != userId) return Unauthorized();
 
             task.IsCompleted = !task.IsCompleted;
             task.Status = task.IsCompleted ? TaskStatusEnum.Completed : TaskStatusEnum.InProgress;
-            
+
             _context.SaveChanges();
 
             return Ok();

@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Xml.Linq;
 using TaskManagement.Models;
@@ -26,7 +26,7 @@ namespace TaskManagement.Models
 
         // Foreign Key to BoardColumn
         public int? BoardColumnId { get; set; }
-        
+
         [ForeignKey("BoardColumnId")]
         public virtual BoardColumn? BoardColumn { get; set; }
 
