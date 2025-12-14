@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TaskManagement.Models
@@ -16,7 +16,7 @@ namespace TaskManagement.Models
 
         // Relationship to Project
         public int ProjectId { get; set; }
-        
+
         [ForeignKey("ProjectId")]
         public virtual Project Project { get; set; }
 

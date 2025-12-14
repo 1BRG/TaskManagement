@@ -29,3 +29,56 @@ body {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
 }
+
+
+
+
+
+
+
+
+
+.app-container {
+    display: flex;
+    min-height: 100vh;
+    background-color: #0f1115;
+    color: #fff;
+}
+
+.sidebar {
+    width: 260px;
+    background-color: #121417;
+    padding: 20px;
+}
+
+.sidebar-title {
+    font-size: 12px;
+    text-transform: uppercase;
+    color: #9aa0a6;
+    margin-bottom: 10px;
+}
+
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+}
+
+.sidebar li {
+    margin-bottom: 8px;
+}
+
+.sidebar a {
+    color: #e8eaed;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+    .sidebar li.active a,
+    .sidebar a:hover {
+        color: #4ade80;
+    }
+
+.content {
+    flex: 1;
+    padding: 30px;
+}

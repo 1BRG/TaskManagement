@@ -76,16 +76,16 @@ body {
     /* Webkit fix */
 }
 
-/* Scrollbar styling for lists */
-.list-cards::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-}
+    /* Scrollbar styling for lists */
+    .list-cards::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
 
-.list-cards::-webkit-scrollbar-thumb {
-    background: #bfc4ce;
-    border-radius: 4px;
-}
+    .list-cards::-webkit-scrollbar-thumb {
+        background: #bfc4ce;
+        border-radius: 4px;
+    }
 
 /* Card */
 .list-card {
@@ -103,9 +103,9 @@ body {
     color: #172b4d;
 }
 
-.list-card:hover {
-    background-color: #f4f5f7;
-}
+    .list-card:hover {
+        background-color: #f4f5f7;
+    }
 
 .list-card-details {
     padding: 6px 8px 6px;
@@ -168,11 +168,11 @@ body {
     /* Fill width minus margin */
 }
 
-.open-card-composer:hover {
-    background-color: rgba(9, 30, 66, .08);
-    color: #172b4d;
-    text-decoration: none;
-}
+    .open-card-composer:hover {
+        background-color: rgba(9, 30, 66, .08);
+        color: #172b4d;
+        text-decoration: none;
+    }
 
 .card-composer {
     /* Initially hidden via JS or CSS class */
@@ -215,9 +215,9 @@ body {
     border-radius: 3px;
 }
 
-.confirm-add-card:hover {
-    background-color: #61bd4f;
-}
+    .confirm-add-card:hover {
+        background-color: #61bd4f;
+    }
 
 .cancel-add-card {
     color: #6b778c;
@@ -230,9 +230,9 @@ body {
 }
 
 
-.cancel-add-card:hover {
-    color: #172b4d;
-}
+    .cancel-add-card:hover {
+        color: #172b4d;
+    }
 
 /* Add List Button */
 .add-list-wrapper {
@@ -248,9 +248,9 @@ body {
     padding: 4px;
 }
 
-.add-list-container:hover {
-    background-color: rgba(255, 255, 255, 0.32);
-}
+    .add-list-container:hover {
+        background-color: rgba(255, 255, 255, 0.32);
+    }
 
 .open-add-list {
     color: #fff;
@@ -260,9 +260,9 @@ body {
     font-weight: 500;
 }
 
-.open-add-list:hover {
-    color: #fff;
-}
+    .open-add-list:hover {
+        color: #fff;
+    }
 
 .add-list-form {
     background-color: #ebecf0;
