@@ -43,7 +43,9 @@
                     </div>
                     
                     <div class="list-cards" ondrop="drop(event, '@colTitle')" ondragover="allowDrop(event)">
-                        @foreach (var task in Model.Tasks.Where(t => t.ColumnName == colTitle).OrderBy(t => t.Order))
+                        @foreach (var task in Model.Tasks
+                            .Where(t => t.ColumnName == colTitle && t.Title != "__COLUMN_PLACEHOLDER__")
+                            .OrderBy(t => t.Order))
                         {
                             <div class="list-card" draggable="true" ondragstart="drag(event, '@task.Id')" data-task-id="@task.Id">
                                 <div class="list-card-details">
@@ -78,7 +80,8 @@
                         
                         <div class="card-composer" id="composer-@currentId">
                             <form method="post" action="/Board/AddCard">
-                                <input type="hidden" name="columnId" value="@currentId" />
+                                <input type="hidden" name="projectId" value="@Model.Id" />
+                                <input type="hidden" name="columnName" value="@colTitle" />
                                 <textarea class="composer-textarea" name="title" placeholder="Enter a title for this card..." autofocus></textarea>
                                 
                                 <div class="composer-controls">
@@ -106,6 +109,7 @@
                 </a>
                 <div class="add-list-form" id="add-list-form" style="display:none;">
                     <form method="post" action="/Board/AddColumn">
+                        <input type="hidden" name="projectId" value="@Model.Id" />
                         <input type="text" class="list-name-input" name="title" placeholder="Enter list title..." autofocus autocomplete="off" />
                         <div class="composer-controls">
                             <button type="submit" class="confirm-add-card">Add List</button>
