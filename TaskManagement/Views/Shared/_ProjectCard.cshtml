@@ -1,0 +1,27 @@
+﻿@model TaskManagement.Models.Project
+<!-- Aici definim cum arată UN proiect oriunde în site -->
+
+<div class="card shadow-sm mb-4 h-100">
+    <div class="card-body">
+        <h5 class="card-title">@Model.Title</h5>
+        <h6 class="card-subtitle mb-2 text-muted">
+            Organizator: @Model.Organizer?.FirstName
+        </h6>
+        <p class="card-text">
+            @if (Model.Description.Length > 50)
+            {
+                @Model.Description.Substring(0, 50) <text>...</text>
+            }
+            else
+            {
+                @Model.Description
+            }
+        </p>
+    </div>
+    <div class="card-footer bg-transparent border-top-0">
+        <!-- Butonul care te duce la Task-uri -->
+        <a href="/Projects/Show/@Model.Id" class="btn btn-primary w-100">
+            Deschide Proiect
+        </a>
+    </div>
+</div>
