@@ -26,10 +26,10 @@ namespace TaskManagement.Models
         public string OrganizerId { get; set; }
 
         [ForeignKey("OrganizerId")]
-        public virtual ApplicationUser Organizer { get; set; }
+        public virtual ApplicationUser ?Organizer { get; set; }
 
         // Relatii
         public virtual ICollection<ProjectMember> Members { get; set; }
-        public virtual ICollection<AppTask> Tasks { get; set; }
+        public virtual ICollection<AppTask> ?Tasks { get; set; }
     }
 }

@@ -30,13 +30,17 @@ namespace TaskManagement.Controllers
         public async Task<IActionResult> Index()
         {
             var userId = _userManager.GetUserId(User);
+            var isAdmin = _userManager.IsInRoleAsync(await _userManager.GetUserAsync(User), "Admin").Result;
             var projectsList = await db.Projects
                                .Include(p => p.Organizer)
-                               .Where(p => p.Members.Any(pm => pm.UserId == userId) || p.OrganizerId == userId)
+                               .Where(p => p.Members.Any(pm => pm.UserId == userId) || isAdmin)
                                .ToListAsync();
             ViewBag.User = _userManager.GetUserAsync(User).Result;
             return View(projectsList);
         }
+
+
+
 
 
     }

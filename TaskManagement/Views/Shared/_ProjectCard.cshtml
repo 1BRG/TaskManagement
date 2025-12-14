@@ -1,27 +1,58 @@
 ﻿@model TaskManagement.Models.Project
-<!-- Aici definim cum arată UN proiect oriunde în site -->
 
+<!-- Card pentru un singur proiect -->
 <div class="card shadow-sm mb-4 h-100">
-    <div class="card-body">
-        <h5 class="card-title">@Model.Title</h5>
+    <div class="card-body d-flex flex-column">
+        <!-- titlu + buton edit -->
+        <div class="d-flex justify-content-between align-items-start mb-2">
+            <h5 class="card-title mb-0">@Model?.Title</h5>
+            <a asp-controller="Projects"
+               asp-action="Edit"
+               asp-route-id="@Model?.Id"
+               class="btn btn-sm btn-outline-secondary"
+               title="Editează proiect"
+               aria-label="Editează proiect @Model?.Title">
+                ⚙️
+            </a>
+        </div>
+
+        <!-- organizator -->
         <h6 class="card-subtitle mb-2 text-muted">
-            Organizator: @Model.Organizer?.FirstName
+            Organizator: @(Model?.Organizer != null ? $"{Model.Organizer.FirstName} {Model.Organizer.LastName}" : "—")
         </h6>
-        <p class="card-text">
-            @if (Model.Description.Length > 50)
-            {
-                @Model.Description.Substring(0, 50) <text>...</text>
+
+        <!-- descriere (preview sigur) -->
+        <p class="card-text flex-grow-1">
+            @{
+                var desc = string.IsNullOrWhiteSpace(Model?.Description) ? "Fără descriere" : Model.Description;
+                var maxChars = 150; // ajustează cât vrei să afișezi
+                var preview = desc.Length > maxChars ? desc.Substring(0, Math.Min(maxChars, desc.Length)) + "…" : desc;
             }
-            else
-            {
-                @Model.Description
-            }
+            @preview
         </p>
     </div>
+
     <div class="card-footer bg-transparent border-top-0">
-        <!-- Butonul care te duce la Task-uri -->
-        <a href="/Projects/Show/@Model.Id" class="btn btn-primary w-100">
+        <!-- buton care duce la pagina proiectului -->
+        <!--/Board/Index/item.Id-->
+       
+        <a asp-controller="Projects"
+           asp-action="Show"
+           asp-route-id="@Model?.Id"
+           class="btn btn-primary w-100"
+           role="button"
+           aria-label="Deschide proiect @Model?.Title">
             Deschide Proiect
         </a>
+
+		<!--
+        <a asp-controller="Board"
+           asp-action="Index"
+           asp-route-id="@Model?.Id"
+           class="btn btn-primary w-100"
+           role="button"
+           aria-label="Deschide proiect @Model?.Title">
+            Deschide Proiect
+		</a>  -->
     </div>
 </div>
