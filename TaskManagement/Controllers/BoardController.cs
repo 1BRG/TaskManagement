@@ -34,23 +34,18 @@ namespace TaskManagement.Controllers
                 return NotFound();
             }
 
-            // Dynamic columns from tasks + defaults
-            var columns = project.Tasks
-                .Select(t => t.ColumnName)
-                .Where(c => !string.IsNullOrEmpty(c))
-                .Distinct()
+            // Dynamic columns from tasks - sorted by creation time (Min ID)
+            var existingColumns = project.Tasks
+                .Where(t => !string.IsNullOrEmpty(t.ColumnName))
+                .GroupBy(t => t.ColumnName)
+                .Select(g => new { Name = g.Key, MinId = g.Min(t => t.Id) })
+                .OrderBy(x => x.MinId)
+                .Select(x => x.Name)
                 .ToList();
 
-            var defaultColumns = new List<string> { "To Do", "In Progress", "Done" };
-            foreach (var def in defaultColumns)
-            {
-                if (!columns.Contains(def))
-                {
-                    columns.Add(def);
-                }
-            }
-
-            ViewBag.Columns = columns;
+            // User requested NO default columns for new projects.
+            // We only show columns that actually exist in the DB (via tasks or placeholders).
+            ViewBag.Columns = existingColumns;
 
             return View(project);
         }
