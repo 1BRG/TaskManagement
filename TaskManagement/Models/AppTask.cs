@@ -20,6 +20,22 @@ namespace TaskManagement.Models
         public TaskStatusEnum Status { get; set; } = TaskStatusEnum.NotStarted;
 
         [Required]
+        public PriorityEnum Priority { get; set; } = PriorityEnum.Medium;
+
+
+
+        // Foreign Key to BoardColumn
+        public int? BoardColumnId { get; set; }
+
+        [ForeignKey("BoardColumnId")]
+        public virtual BoardColumn? BoardColumn { get; set; }
+
+        public int Order { get; set; } // For visual sorting
+
+
+        public bool IsCompleted { get; set; }
+
+        [Required]
         public DateTime StartDate { get; set; }
 
         [Required]

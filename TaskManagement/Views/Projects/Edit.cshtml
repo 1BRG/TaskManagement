@@ -2,11 +2,13 @@
 @inject UserManager<ApplicationUser> _userManager
 @model TaskManagement.Models.Project
 
+
 @{
     ViewData["Title"] = "Editare Proiect";
+    ViewData["HideNav"] = true;   // <- adaugă asta pentru a ascunde navbar-ul
+    // Use the default _Layout (do not set Layout = null) so CSS and shared assets remain loaded.
 }
 
-<!-- Nu pune <body> aici, este deja in _Layout -->
 <div class="app-container">
     @await Html.PartialAsync("_Sidebar")
 
@@ -52,6 +54,7 @@
                                 // VERIFICARE CRITICĂ: Afisam doar daca userul exista
                                 if (member != null)
                                 {
+
                                     <a asp-controller="Users" asp-action="Profile" asp-route-id="@userProject.UserId"
                                        class="list-group-item list-group-item-action d-flex align-items-center">
 

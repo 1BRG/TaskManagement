@@ -25,8 +25,10 @@ namespace TaskManagement.Controllers
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             // Sync Query with Include
+            // Make sure to include Columns and Tasks for those columns
             var project = _context.Projects
-                .Include(p => p.Tasks)
+                .Include(p => p.Columns) // Load columns
+                .ThenInclude(c => c.Tasks) // Load tasks in columns
                 .FirstOrDefault(p => p.Id == id && p.OrganizerId == userId);
 
             if (project == null)
@@ -34,24 +36,15 @@ namespace TaskManagement.Controllers
                 return NotFound();
             }
 
-            // Dynamic columns from tasks - sorted by creation time (Min ID)
-            var existingColumns = project.Tasks
-                .Where(t => !string.IsNullOrEmpty(t.ColumnName))
-                .GroupBy(t => t.ColumnName)
-                .Select(g => new { Name = g.Key, MinId = g.Min(t => t.Id) })
-                .OrderBy(x => x.MinId)
-                .Select(x => x.Name)
-                .ToList();
-
-            // User requested NO default columns for new projects.
-            // We only show columns that actually exist in the DB (via tasks or placeholders).
-            ViewBag.Columns = existingColumns;
+            // Setup columns for view
+            // We can just pass the project.Columns directly, but let's order them
+            project.Columns = project.Columns.OrderBy(c => c.Order).ToList();
 
             return View(project);
         }
 
         [HttpPost]
-        public IActionResult AddCard(int projectId, string columnName, string title, PriorityEnum priority)
+        public IActionResult AddCard(int projectId, int columnId, string title, PriorityEnum priority)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
@@ -61,28 +54,23 @@ namespace TaskManagement.Controllers
 
             if (!string.IsNullOrWhiteSpace(title))
             {
-                // Find Max Order in this column to append
+                // Find Max Order in this column
                 var maxOrder = _context.AppTasks
-                    .Where(t => t.ProjectId == projectId && t.ColumnName == columnName)
+                    .Where(t => t.ProjectId == projectId && t.BoardColumnId == columnId)
                     .Max(t => (int?)t.Order) ?? 0;
 
                 var task = new AppTask
                 {
                     Title = title,
-                    Description = "", // Required by model? 
+                    Description = "No description",
                     Priority = priority,
-                    ColumnName = columnName,
+                    BoardColumnId = columnId,
                     ProjectId = projectId,
                     Status = TaskStatusEnum.NotStarted,
                     StartDate = DateTime.Now,
                     EndDate = DateTime.Now.AddDays(7),
                     Order = maxOrder + 1
                 };
-
-                // Existing Model AppTask has [Required] Description.
-                // We must provide a dummy description or change the model.
-                // Model is "AppTask.cs" ... [Required] public string Description { get; set; }
-                task.Description = "No description";
 
                 _context.AppTasks.Add(task);
                 _context.SaveChanges();
@@ -94,28 +82,22 @@ namespace TaskManagement.Controllers
         [HttpPost]
         public IActionResult AddColumn(int projectId, string title)
         {
-            // Verify project
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var project = _context.Projects.FirstOrDefault(p => p.Id == projectId && p.OrganizerId == userId);
+            var project = _context.Projects.Include(p => p.Columns).FirstOrDefault(p => p.Id == projectId && p.OrganizerId == userId);
             if (project == null) return Unauthorized();
 
             if (!string.IsNullOrWhiteSpace(title))
             {
-                // Create a placeholder task to persist the column
-                var placeholder = new AppTask
+                var maxOrder = project.Columns.Any() ? project.Columns.Max(c => c.Order) : 0;
+
+                var column = new BoardColumn
                 {
-                    Title = "__COLUMN_PLACEHOLDER__",
-                    Description = "System Task for Column Persistence",
-                    Priority = PriorityEnum.Low,
-                    ColumnName = title,
+                    Title = title,
                     ProjectId = projectId,
-                    Status = TaskStatusEnum.NotStarted,
-                    StartDate = DateTime.Now,
-                    EndDate = DateTime.Now,
-                    Order = -1 // Keep at top/hidden usually
+                    Order = maxOrder + 1
                 };
 
-                _context.AppTasks.Add(placeholder);
+                _context.BoardColumns.Add(column);
                 _context.SaveChanges();
             }
 
@@ -123,32 +105,28 @@ namespace TaskManagement.Controllers
         }
 
         [HttpPost]
-        public IActionResult MoveCard(int taskId, string targetColumn, int index)
+        public IActionResult MoveCard(int taskId, int targetColumnId, int index)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             var task = _context.AppTasks.Include(t => t.Project).FirstOrDefault(t => t.Id == taskId);
 
             if (task == null) return NotFound();
-            if (task.Project.OrganizerId != userId) return Unauthorized(); // Check ownership
+            if (task.Project.OrganizerId != userId) return Unauthorized();
 
             // Reordering logic
-            // Get all tasks in target column
             var tasksInColumn = _context.AppTasks
-                .Where(t => t.ProjectId == task.ProjectId && t.ColumnName == targetColumn && t.Id != taskId)
+                .Where(t => t.ProjectId == task.ProjectId && t.BoardColumnId == targetColumnId && t.Id != taskId)
                 .OrderBy(t => t.Order)
                 .ToList();
 
-            // Update moved task
-            task.ColumnName = targetColumn;
+            task.BoardColumnId = targetColumnId;
 
-            // Insert into list
             if (index < 0) index = 0;
             if (index > tasksInColumn.Count) index = tasksInColumn.Count;
 
             tasksInColumn.Insert(index, task);
 
-            // Reassign orders
             for (var i = 0; i < tasksInColumn.Count; i++)
             {
                 tasksInColumn[i].Order = i;
@@ -169,7 +147,6 @@ namespace TaskManagement.Controllers
             if (task.Project.OrganizerId != userId) return Unauthorized();
 
             task.IsCompleted = !task.IsCompleted;
-            // Also update Status enum?
             task.Status = task.IsCompleted ? TaskStatusEnum.Completed : TaskStatusEnum.InProgress;
 
             _context.SaveChanges();

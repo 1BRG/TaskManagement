@@ -19,33 +19,26 @@
 
     <div class="board-wrapper">
         <div class="board-header">
-            @Model.Title
+            <a asp-action="Index" asp-controller="Home" class="nav-item">@Model.Title</a>
         </div>
 
         <div class="board-canvas">
             @{
-                var columns = ViewBag.Columns as List<string>;
-                int colIndex = 0;
+                // Iterate over BoardColumn objects
+                var columns = Model.Columns;
             }
 
-            @foreach (var colTitle in columns)
+            @foreach (var col in columns)
             {
-                // Map string columns to Enum ID if possible, or use index
-                // For this prototype, we assume first 3 are Enum mapped: 0, 1, 2
-                // Custom ones will have higher indices, which might not map to TaskStatusEnum perfectly for 'Add Card'
-                // But we will use the index as ID for now.
-                int currentId = colIndex;
-
                 <div class="list-wrapper">
                     <div class="list">
                         <div class="list-header">
-                            @colTitle
+                            @col.Title
                         </div>
 
-                        <div class="list-cards" ondrop="drop(event, '@colTitle')" ondragover="allowDrop(event)">
-                            @foreach (var task in Model.Tasks
-                                                    .Where(t => t.ColumnName == colTitle && t.Title != "__COLUMN_PLACEHOLDER__")
-                                                    .OrderBy(t => t.Order))
+                        @* Pass Column ID to drop handler *@
+                        <div class="list-cards" ondrop="drop(event, @col.Id)" ondragover="allowDrop(event)">
+                            @foreach (var task in col.Tasks.OrderBy(t => t.Order))
                             {
                                 <div class="list-card" draggable="true" ondragstart="drag(event, '@task.Id')" data-task-id="@task.Id">
                                     <div class="list-card-details">
@@ -74,19 +67,19 @@
 
                         <!-- Add Card Footer -->
                         <div class="card-composer-container">
-                            <a class="open-card-composer" id="open-composer-@currentId" href="javascript:void(0)" onclick="toggleComposer(@currentId, true)">
+                            <a class="open-card-composer" id="open-composer-@col.Id" href="javascript:void(0)" onclick="toggleComposer(@col.Id, true)">
                                 + Add a card
                             </a>
 
-                            <div class="card-composer" id="composer-@currentId">
+                            <div class="card-composer" id="composer-@col.Id">
                                 <form method="post" action="/Board/AddCard">
                                     <input type="hidden" name="projectId" value="@Model.Id" />
-                                    <input type="hidden" name="columnName" value="@colTitle" />
+                                    <input type="hidden" name="columnId" value="@col.Id" /> <!-- Pass ID not Name -->
                                     <textarea class="composer-textarea" name="title" placeholder="Enter a title for this card..." autofocus></textarea>
 
                                     <div class="composer-controls">
                                         <button type="submit" class="confirm-add-card">Add Card</button>
-                                        <div class="cancel-add-card" onclick="toggleComposer(@currentId, false)">×</div>
+                                        <div class="cancel-add-card" onclick="toggleComposer(@col.Id, false)">×</div>
                                     </div>
                                     <select name="priority" style="margin-top: 4px; border: none; background: transparent; color: #5e6c84; font-size: 12px;">
                                         <option value="Low">Low</option>
@@ -98,7 +91,6 @@
                         </div>
                     </div>
                 </div>
-                colIndex++;
             }
 
             <!-- Add Another List Button -->
@@ -123,6 +115,7 @@
     </div>
 
     <script>
+        // ... toggleComposer, etc ... (Unchanged mostly, just ensure IDs match)
         function toggleComposer(columnId, show) {
             var openBtn = document.getElementById('open-composer-' + columnId);
             var composer = document.getElementById('composer-' + columnId);
@@ -154,13 +147,10 @@
         // Drag and Drop Logic
         function allowDrop(ev) {
             ev.preventDefault();
-
             var container = ev.target.closest('.list-cards');
             if (!container) return;
-
             var afterElement = getDragAfterElement(container, ev.clientY);
             var draggable = document.querySelector('.dragging');
-
             if (draggable) {
                 if (afterElement == null) {
                     container.appendChild(draggable);
@@ -175,7 +165,6 @@
             ev.target.classList.add('dragging');
         }
 
-        // Add event listener for dragend to remove class
         document.addEventListener('dragend', function(event) {
             if(event.target.classList.contains('list-card')) {
                  event.target.classList.remove('dragging');
@@ -183,13 +172,10 @@
         });
 
         function getDragAfterElement(container, y) {
-            // querySelectorAll does not return an array
             var draggableElements = [...container.querySelectorAll('.list-card:not(.dragging)')];
-
             return draggableElements.reduce((closest, child) => {
                 var box = child.getBoundingClientRect();
                 var offset = y - box.top - box.height / 2;
-
                 if (offset < 0 && offset > closest.offset) {
                     return { offset: offset, element: child };
                 } else {
@@ -198,23 +184,17 @@
             }, { offset: Number.NEGATIVE_INFINITY }).element;
         }
 
-        function drop(ev, targetColumn) {
+        function drop(ev, targetColumnId) {
             ev.preventDefault();
             var taskId = ev.dataTransfer.getData("text");
-
-            // Visual DOM already handled by dragover (allowDrop) mostly,
-            // but we need to ensure the final calculation is correct and get the index.
 
             var container = ev.target.closest('.list-cards');
             var cardElement = document.querySelector(`.list-card[data-task-id='${taskId}']`);
 
             if (container && cardElement) {
-                 // It might already be there due to dragover visual updates
-                 // Calculate index
                  var index = [...container.querySelectorAll('.list-card')].indexOf(cardElement);
-
-                 // Call API with index
-                 fetch('/Board/MoveCard?taskId=' + taskId + '&targetColumn=' + targetColumn + '&index=' + index, { method: 'POST' });
+                 // Call API with Column ID
+                 fetch('/Board/MoveCard?taskId=' + taskId + '&targetColumnId=' + targetColumnId + '&index=' + index, { method: 'POST' });
             }
 
             if(cardElement) cardElement.classList.remove('dragging');
