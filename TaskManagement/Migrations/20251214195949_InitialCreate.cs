@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace TaskManagement.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialMigration : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -184,32 +184,20 @@ namespace TaskManagement.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "AppTasks",
+                name: "BoardColumns",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    Title = table.Column<string>(type: "TEXT", nullable: false),
-                    Description = table.Column<string>(type: "TEXT", nullable: false),
-                    Status = table.Column<int>(type: "INTEGER", nullable: false),
-                    StartDate = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    EndDate = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    MediaUrl = table.Column<string>(type: "TEXT", nullable: true),
-                    MediaType = table.Column<int>(type: "INTEGER", nullable: true),
-                    ProjectId = table.Column<int>(type: "INTEGER", nullable: false),
-                    AssignedToUserId = table.Column<string>(type: "TEXT", nullable: true)
+                    Title = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
+                    Order = table.Column<int>(type: "INTEGER", nullable: false),
+                    ProjectId = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_AppTasks", x => x.Id);
+                    table.PrimaryKey("PK_BoardColumns", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_AppTasks_AspNetUsers_AssignedToUserId",
-                        column: x => x.AssignedToUserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
-                    table.ForeignKey(
-                        name: "FK_AppTasks_Projects_ProjectId",
+                        name: "FK_BoardColumns_Projects_ProjectId",
                         column: x => x.ProjectId,
                         principalTable: "Projects",
                         principalColumn: "Id",
@@ -235,6 +223,49 @@ namespace TaskManagement.Migrations
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_ProjectMembers_Projects_ProjectId",
+                        column: x => x.ProjectId,
+                        principalTable: "Projects",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AppTasks",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    Title = table.Column<string>(type: "TEXT", nullable: false),
+                    Description = table.Column<string>(type: "TEXT", nullable: false),
+                    Status = table.Column<int>(type: "INTEGER", nullable: false),
+                    Priority = table.Column<int>(type: "INTEGER", nullable: false),
+                    BoardColumnId = table.Column<int>(type: "INTEGER", nullable: true),
+                    Order = table.Column<int>(type: "INTEGER", nullable: false),
+                    IsCompleted = table.Column<bool>(type: "INTEGER", nullable: false),
+                    StartDate = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    EndDate = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    MediaUrl = table.Column<string>(type: "TEXT", nullable: true),
+                    MediaType = table.Column<int>(type: "INTEGER", nullable: true),
+                    ProjectId = table.Column<int>(type: "INTEGER", nullable: false),
+                    AssignedToUserId = table.Column<string>(type: "TEXT", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AppTasks", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AppTasks_AspNetUsers_AssignedToUserId",
+                        column: x => x.AssignedToUserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_AppTasks_BoardColumns_BoardColumnId",
+                        column: x => x.BoardColumnId,
+                        principalTable: "BoardColumns",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_AppTasks_Projects_ProjectId",
                         column: x => x.ProjectId,
                         principalTable: "Projects",
                         principalColumn: "Id",
@@ -273,6 +304,11 @@ namespace TaskManagement.Migrations
                 name: "IX_AppTasks_AssignedToUserId",
                 table: "AppTasks",
                 column: "AssignedToUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AppTasks_BoardColumnId",
+                table: "AppTasks",
+                column: "BoardColumnId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_AppTasks_ProjectId",
@@ -315,6 +351,11 @@ namespace TaskManagement.Migrations
                 table: "AspNetUsers",
                 column: "NormalizedUserName",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_BoardColumns_ProjectId",
+                table: "BoardColumns",
+                column: "ProjectId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Comments_AppTaskId",
@@ -366,6 +407,9 @@ namespace TaskManagement.Migrations
 
             migrationBuilder.DropTable(
                 name: "AppTasks");
+
+            migrationBuilder.DropTable(
+                name: "BoardColumns");
 
             migrationBuilder.DropTable(
                 name: "Projects");
