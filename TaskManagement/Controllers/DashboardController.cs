@@ -29,13 +29,24 @@ namespace TaskManagement.Controllers
         [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> Index()
         {
-            var userId = _userManager.GetUserId(User);
-            var isAdmin = _userManager.IsInRoleAsync(await _userManager.GetUserAsync(User), "Admin").Result;
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                // User cookie exists but user is not in DB (e.g. after reset)
+                // Force logout and redirect
+                await ((Microsoft.AspNetCore.Identity.SignInManager<ApplicationUser>)HttpContext.RequestServices.GetService(typeof(Microsoft.AspNetCore.Identity.SignInManager<ApplicationUser>))).SignOutAsync();
+                return RedirectToAction("Index", "Home");
+            }
+
+            var userId = user.Id;
+            var isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
+            
             var projectsList = await db.Projects
                                .Include(p => p.Organizer)
                                .Where(p => p.Members.Any(pm => pm.UserId == userId) || isAdmin)
                                .ToListAsync();
-            ViewBag.User = _userManager.GetUserAsync(User).Result;
+                               
+            ViewBag.User = user;
             return View(projectsList);
         }
 
