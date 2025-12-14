@@ -1,165 +1,208 @@
+using Microsoft.EntityFrameworkCore;
+using TaskManagement.Data;
 using TaskManagement.Models;
 
 namespace TaskManagement.Services
 {
     public class BoardService
     {
-        private Project _project;
-        private int _nextTaskId = 100;
-        private List<string> _columns = new List<string> { "To Do", "Doing", "Done" };
+        private readonly ApplicationDbContext _context;
 
-        public BoardService()
+        public BoardService(ApplicationDbContext context)
         {
-            SeedData();
+            _context = context;
         }
 
-        private void SeedData()
+        public Project GetBoard(int projectId)
         {
-            _project = new Project
-            {
-                Id = 1,
-                Title = "Trello Clone Prototype",
-                Description = "A vertical slice of a Kanban board.",
-                OrganizerId = "mock-admin",
-                Tasks = new List<AppTask>()
-            };
+            // 1. Fetch Project with Columns and Tasks eagerly
+            var project = _context.Projects
+                .Include(p => p.Columns)
+                .Include(p => p.Tasks)
+                .FirstOrDefault(p => p.Id == projectId);
 
-            var sampleHelper = new[]
+            // 2. Auto-Seed if ANY project is missing (Prototype Convenience)
+            if (project == null)
             {
-                new { Title = "Design DB Schema", Status = TaskStatusEnum.Completed, Priority = PriorityEnum.High },
-                new { Title = "Implement Auth Identity", Status = TaskStatusEnum.Completed, Priority = PriorityEnum.High },
-                new { Title = "Create Board Controller", Status = TaskStatusEnum.InProgress, Priority = PriorityEnum.Medium },
-                new { Title = "Fix CSS Flexbox Issues", Status = TaskStatusEnum.InProgress, Priority = PriorityEnum.Low },
-                new { Title = "Deploy to Production", Status = TaskStatusEnum.NotStarted, Priority = PriorityEnum.High }
-            };
-
-            foreach (var s in sampleHelper)
-            {
-                // Map status to default column names
-                string colName = "To Do";
-                if (s.Status == TaskStatusEnum.InProgress) colName = "Doing";
-                if (s.Status == TaskStatusEnum.Completed) colName = "Done";
-
-                _project.Tasks.Add(new AppTask
+                // Ensure we have a user for the OrganizerId Foreign Key
+                var user = _context.Users.FirstOrDefault();
+                if (user == null)
                 {
-                    Id = _nextTaskId++,
-                    Title = s.Title,
-                    Description = "Sample task description...",
-                    Status = s.Status,
-                    Priority = s.Priority,
-                    ColumnName = colName,
-                    Order = _project.Tasks.Count(t => t.ColumnName == colName), // Simple increment
-                    ProjectId = 1,
-                    StartDate = DateTime.Now,
-                    EndDate = DateTime.Now.AddDays(7),
-                    AssignedToUserId = "mock-user"
-                });
-            }
-        }
+                    user = new ApplicationUser
+                    {
+                        UserName = "admin@demo.com",
+                        Email = "admin@demo.com",
+                        NormalizedUserName = "ADMIN@DEMO.COM",
+                        NormalizedEmail = "ADMIN@DEMO.COM",
+                        EmailConfirmed = true
+                    };
+                    _context.Users.Add(user);
+                    _context.SaveChanges();
+                }
 
-        public Project GetBoard()
-        {
-            // Ensure tasks are sorted by Order when retrieved (handled in view or here if returning sorted list)
-            // But Project.Tasks is a Collection. We'll sort in the View or return sorted list? 
-            // View uses .Where(), so we should rely on Order property being correct.
-            return _project;
+                // Create Default Project
+                project = new Project
+                {
+                    Title = "Trello Clone Prototype",
+                    Description = "A vertical slice of a Kanban board.",
+                    OrganizerId = user.Id,
+                    CreatedDate = DateTime.Now
+                };
+                
+                _context.Projects.Add(project);
+                _context.SaveChanges(); // Save to get Id
+
+                // Reload to attach
+                project = _context.Projects
+                    .Include(p => p.Columns)
+                    .Include(p => p.Tasks)
+                    .FirstOrDefault(p => p.Id == project.Id);
+            }
+
+            // 3. Ensure Default Columns Exist (Seeding Logic)
+            if (project != null && !project.Columns.Any())
+            {
+                var defaultColumns = new List<ProjectColumn>
+                {
+                    new ProjectColumn { Name = "To Do", Order = 0, ProjectId = project.Id },
+                    new ProjectColumn { Name = "Doing", Order = 1, ProjectId = project.Id },
+                    new ProjectColumn { Name = "Done", Order = 2, ProjectId = project.Id }
+                };
+
+                _context.ProjectColumns.AddRange(defaultColumns);
+                _context.SaveChanges(); // Synchronous Save
+
+                // Reload columns
+                _context.Entry(project).Collection(p => p.Columns).Load();
+            }
+
+            return project;
         }
 
         public void AddTask(int columnId, string title, PriorityEnum priority)
         {
-            // Validate index
-            if (columnId < 0 || columnId >= _columns.Count) return;
-
-            string targetColumn = _columns[columnId];
+            // Note: columnId here might be index or ID.
+            // In the view, we passed index. Refactoring to pass Name or ID would be better.
+            // But to keep constraints: "UX looking like before".
+            // Previous code: GetColumns()[columnId] -> string targetColumn.
             
-            // Still try to map to enum for backward compatibility if possible
-            var status = TaskStatusEnum.NotStarted;
-            if (targetColumn == "Doing") status = TaskStatusEnum.InProgress;
-            if (targetColumn == "Done") status = TaskStatusEnum.Completed;
+            // Let's resolve the column name by index from the project's columns, 
+            // OR change controller to pass something more robust.
+            // Given I can change Controller, I will make Controller pass Column Name.
+            // BUT, let's look at the method signature: (int columnId, ...).
+            // This 'columnId' in the old code was an INDEX.
+            // I should interpret it as ID or INDEX?
+            // Safer to refactor Controller to pass the NAME or ID of the column directly.
+            // I'll stick to string Name in this method to match AppTask.ColumnName logic.
+            // Wait, I am rewriting BoardService. So I can change signature.
+        }
+        
+        // Revised AddTask accepting string for strict Column Mapping
+        public void AddTaskToColumn(string columnName, string title, PriorityEnum priority, int projectId)
+        {
+             var project = _context.Projects.Include(p => p.Tasks).FirstOrDefault(p => p.Id == projectId);
+             if (project == null) return;
 
-            // Calc order: end of list
-            int newOrder = _project.Tasks.Count(t => t.ColumnName == targetColumn);
+             var status = TaskStatusEnum.NotStarted;
+             if (columnName == "Doing") status = TaskStatusEnum.InProgress;
+             if (columnName == "Done") status = TaskStatusEnum.Completed;
+             
+             // Calculate Order
+             var existingTasksInCol = project.Tasks.Count(t => t.ColumnName == columnName);
 
-            var newTask = new AppTask
+             var newTask = new AppTask
+             {
+                 Title = title,
+                 Description = "",
+                 Status = status,
+                 Priority = priority,
+                 ColumnName = columnName,
+                 Order = existingTasksInCol,
+                 ProjectId = projectId,
+                 StartDate = DateTime.Now,
+                 EndDate = DateTime.Now.AddDays(1),
+                 AssignedToUserId = project.OrganizerId // Or null
+             };
+             
+             // Check if CreatedDate/Organizer is needed?
+             // AppTask doesn't have Organizer, Project does.
+             // AssignedToUserId: let's leave null or set to current user if we had context.
+             // Since I don't have user context here easily without passing it, I'll leave null.
+             
+             _context.AppTasks.Add(newTask);
+             _context.SaveChanges();
+        }
+
+        public void AddColumn(int projectId, string title)
+        {
+            if (string.IsNullOrWhiteSpace(title)) return;
+            
+            var project = _context.Projects.Include(p => p.Columns).FirstOrDefault(p => p.Id == projectId);
+            if (project == null) return;
+
+            // Start Order at end
+            int maxOrder = project.Columns.Any() ? project.Columns.Max(c => c.Order) : -1;
+            
+            var newCol = new ProjectColumn
             {
-                Id = _nextTaskId++,
-                Title = title,
-                Description = "", 
-                Status = status,
-                Priority = priority,
-                ColumnName = targetColumn,
-                Order = newOrder,
-                ProjectId = 1,
-                StartDate = DateTime.Now,
-                EndDate = DateTime.Now.AddDays(1)
+                Name = title,
+                Order = maxOrder + 1,
+                ProjectId = projectId
             };
-
-            _project.Tasks.Add(newTask);
-        }
-
-        public List<string> GetColumns()
-        {
-            return _columns;
-        }
-
-        public void AddColumn(string title)
-        {
-            if (!string.IsNullOrWhiteSpace(title))
-            {
-                _columns.Add(title);
-            }
+            
+            _context.ProjectColumns.Add(newCol);
+            _context.SaveChanges();
         }
 
         public void MoveTask(int taskId, string targetColumnName, int newIndex)
         {
-            var task = _project.Tasks.FirstOrDefault(t => t.Id == taskId);
+            var task = _context.AppTasks.FirstOrDefault(t => t.Id == taskId);
             if (task == null) return;
 
-            string oldColumn = task.ColumnName ?? "To Do";
-            
-            // 1. Remove from logical position in old column (if changing columns)
-            if (oldColumn != targetColumnName)
-            {
-                var oldColTasks = _project.Tasks.Where(t => t.ColumnName == oldColumn && t.Id != taskId).OrderBy(t => t.Order).ToList();
-                for (int i = 0; i < oldColTasks.Count; i++)
-                {
-                    oldColTasks[i].Order = i;
-                }
-            }
-            // If same column, we treat the removal implicitly by reordering the whole set minus the moved task, then inserting.
-            
-            // 2. Prepare target column tasks
-            var targetColTasks = _project.Tasks
-                .Where(t => t.ColumnName == targetColumnName && t.Id != taskId)
-                .OrderBy(t => t.Order)
-                .ToList();
-
-            // 3. Insert task at newIndex
-            // Clamp index
-            if (newIndex < 0) newIndex = 0;
-            if (newIndex > targetColTasks.Count) newIndex = targetColTasks.Count;
-
-            targetColTasks.Insert(newIndex, task);
-
-            // 4. Update task properties and re-assign Orders
+            // Update State
             task.ColumnName = targetColumnName;
-            // Update Status enum if applicable for backward compat
+            
+            // Map Status if standard columns (UX consistency)
             if (targetColumnName == "To Do") task.Status = TaskStatusEnum.NotStarted;
             else if (targetColumnName == "Doing") task.Status = TaskStatusEnum.InProgress;
             else if (targetColumnName == "Done") task.Status = TaskStatusEnum.Completed;
+            
+            // Note: Reordering logic is complex to do purely in DB without loading all tasks.
+            // For now, I will blindly update the order. 
+            // In a real Trello, you shift others.
+            // Constraint: "Strict Synchronous Code... Real Database Connection".
+            // I'll implement basic reordering synchronously.
+            
+            // 1. Fetch all tasks in target column to shift them
+            // We need to shift everything >= newIndex down.
+            // And normalization.
+            // This is heavy, but fits constraints.
+            
+            var targetTasks = _context.AppTasks
+                .Where(t => t.ProjectId == task.ProjectId && t.ColumnName == targetColumnName && t.Id != taskId)
+                .OrderBy(t => t.Order)
+                .ToList();
 
-            for (int i = 0; i < targetColTasks.Count; i++)
+            if (newIndex < 0) newIndex = 0;
+            if (newIndex > targetTasks.Count) newIndex = targetTasks.Count;
+
+            targetTasks.Insert(newIndex, task);
+
+            for (int i = 0; i < targetTasks.Count; i++)
             {
-                targetColTasks[i].Order = i;
+                targetTasks[i].Order = i;
             }
+            
+            _context.SaveChanges();
         }
 
         public void ToggleTaskCompletion(int taskId)
         {
-            var task = _project.Tasks.FirstOrDefault(t => t.Id == taskId);
+            var task = _context.AppTasks.FirstOrDefault(t => t.Id == taskId);
             if (task != null)
             {
                 task.IsCompleted = !task.IsCompleted;
+                _context.SaveChanges();
             }
         }
     }

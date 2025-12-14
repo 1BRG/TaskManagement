@@ -30,6 +30,7 @@ namespace TaskManagement.Models
 
         // Relatii
         public virtual ICollection<ProjectMember> Members { get; set; }
+        public virtual ICollection<ProjectColumn> Columns { get; set; }
         public virtual ICollection<AppTask> Tasks { get; set; }
     }
 }

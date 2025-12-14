@@ -2,121 +2,124 @@
 @model TaskManagement.Models.Project
 
 @{
-    ViewData["Title"] = Model.Title;
-    Layout = null; // No layout to ensure full page control for this prototype, or standard layout? 
-                   // User said "Container: white-space: nowrap... height: 100vh". Better to exclude Layout or override deeply.
-                   // I'll assume Standalone page for vertical slice perfection.
+    Layout = null;
+    string projectTitle = Model?.Title ?? "No Project Found";
 }
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - TaskManagement</title>
+    <title>@projectTitle - TaskManagement</title>
     <link rel="stylesheet" href="~/css/board.css" />
 </head>
 <body>
 
-<div class="board-wrapper">
-    <div class="board-header">
-        @Model.Title
+@if (Model == null)
+{
+    <div style="padding: 20px; text-align: center; color: #5e6c84;">
+        <h2>Project Not Found or No Data Available</h2>
+        <p>Please check the database or ensure the project exists.</p>
     </div>
+}
+else
+{
+    <div class="board-wrapper">
+        <div class="board-header">
+            @Model.Title
+        </div>
+        
+        <div class="board-canvas">
+            @{
+                // Sort columns by Order
+                var columns = Model.Columns.OrderBy(c => c.Order).ToList();
+            }
     
-    <div class="board-canvas">
-        @{
-            var columns = ViewBag.Columns as List<string>;
-            int colIndex = 0;
-        }
-
-        @foreach (var colTitle in columns)
-        {
-            // Map string columns to Enum ID if possible, or use index
-            // For this prototype, we assume first 3 are Enum mapped: 0, 1, 2
-            // Custom ones will have higher indices, which might not map to TaskStatusEnum perfectly for 'Add Card'
-            // But we will use the index as ID for now.
-            int currentId = colIndex; 
-            
-            <div class="list-wrapper">
-                <div class="list">
-                    <div class="list-header">
-                        @colTitle
-                    </div>
-                    
-                    <div class="list-cards" ondrop="drop(event, '@colTitle')" ondragover="allowDrop(event)">
-                        @foreach (var task in Model.Tasks.Where(t => t.ColumnName == colTitle).OrderBy(t => t.Order))
-                        {
-                            <div class="list-card" draggable="true" ondragstart="drag(event, '@task.Id')" data-task-id="@task.Id">
-                                <div class="list-card-details">
-                                    <div class="card-check-btn @(task.IsCompleted ? "checked" : "")" onclick="toggleTask(event, @task.Id)">
-                                        @(task.IsCompleted ? "✓" : "")
-                                    </div>
-
-                                    @if(task.Priority == PriorityEnum.High)
-                                    {
-                                        <div class="badge badge-high" title="High Priority"></div>
-                                    }
-                                    else if (task.Priority == PriorityEnum.Medium)
-                                    {
-                                         <div class="badge badge-medium" title="Medium Priority"></div>
-                                    }
-                                    else if (task.Priority == PriorityEnum.Low)
-                                    {
-                                         <div class="badge badge-low" title="Low Priority"></div>
-                                    }
-                                    
-                                    <span class="list-card-title @(task.IsCompleted ? "completed-task" : "")" id="title-@task.Id">@task.Title</span>
-                                </div>
-                            </div>
-                        }
-                    </div>
-
-                    <!-- Add Card Footer -->
-                    <div class="card-composer-container">
-                        <a class="open-card-composer" id="open-composer-@currentId" href="javascript:void(0)" onclick="toggleComposer(@currentId, true)">
-                            + Add a card
-                        </a>
+            @foreach (var col in columns)
+            {
+                <div class="list-wrapper">
+                    <div class="list">
+                        <div class="list-header">
+                            @col.Name
+                        </div>
                         
-                        <div class="card-composer" id="composer-@currentId">
-                            <form method="post" action="/Board/AddCard">
-                                <input type="hidden" name="columnId" value="@currentId" />
-                                <textarea class="composer-textarea" name="title" placeholder="Enter a title for this card..." autofocus></textarea>
-                                
-                                <div class="composer-controls">
-                                    <button type="submit" class="confirm-add-card">Add Card</button>
-                                    <div class="cancel-add-card" onclick="toggleComposer(@currentId, false)">×</div>
+                        <div class="list-cards" ondrop="drop(event, '@col.Name')" ondragover="allowDrop(event)">
+                            @foreach (var task in Model.Tasks.Where(t => t.ColumnName == col.Name).OrderBy(t => t.Order))
+                            {
+                                <div class="list-card" draggable="true" ondragstart="drag(event, '@task.Id')" data-task-id="@task.Id">
+                                    <div class="list-card-details">
+                                        <div class="card-check-btn @(task.IsCompleted ? "checked" : "")" onclick="toggleTask(event, @task.Id)">
+                                            @(task.IsCompleted ? "✓" : "")
+                                        </div>
+    
+                                        @if(task.Priority == PriorityEnum.High)
+                                        {
+                                            <div class="badge badge-high" title="High Priority"></div>
+                                        }
+                                        else if (task.Priority == PriorityEnum.Medium)
+                                        {
+                                             <div class="badge badge-medium" title="Medium Priority"></div>
+                                        }
+                                        else if (task.Priority == PriorityEnum.Low)
+                                        {
+                                             <div class="badge badge-low" title="Low Priority"></div>
+                                        }
+                                        
+                                        <span class="list-card-title @(task.IsCompleted ? "completed-task" : "")" id="title-@task.Id">@task.Title</span>
+                                    </div>
                                 </div>
-                                <select name="priority" style="margin-top: 4px; border: none; background: transparent; color: #5e6c84; font-size: 12px;">
-                                    <option value="Low">Low</option>
-                                    <option value="Medium" selected>Medium</option>
-                                    <option value="High">High</option>
-                                </select>
-                            </form>
+                            }
+                        </div>
+    
+                        <!-- Add Card Footer -->
+                        <div class="card-composer-container">
+                            <!-- Use col.Id or col.Name for unique IDs in JS -->
+                            <a class="open-card-composer" id="open-composer-@col.Id" href="javascript:void(0)" onclick="toggleComposer(@col.Id, true)">
+                                + Add a card
+                            </a>
+                            
+                            <div class="card-composer" id="composer-@col.Id">
+                                <form method="post" action="/Board/AddCard">
+                                    <!-- Send ColumnName instead of Index -->
+                                    <input type="hidden" name="columnName" value="@col.Name" />
+                                    <textarea class="composer-textarea" name="title" placeholder="Enter a title for this card..." autofocus></textarea>
+                                    
+                                    <div class="composer-controls">
+                                        <button type="submit" class="confirm-add-card">Add Card</button>
+                                        <div class="cancel-add-card" onclick="toggleComposer(@col.Id, false)">×</div>
+                                    </div>
+                                    <select name="priority" style="margin-top: 4px; border: none; background: transparent; color: #5e6c84; font-size: 12px;">
+                                        <option value="Low">Low</option>
+                                        <option value="Medium" selected>Medium</option>
+                                        <option value="High">High</option>
+                                    </select>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            colIndex++;
-        }
-
-        <!-- Add Another List Button -->
-        <div class="list-wrapper add-list-wrapper">
-            <div class="add-list-container">
-                <a class="open-add-list" id="open-add-list" href="javascript:void(0)" onclick="toggleAddList(true)">
-                    + Add another list
-                </a>
-                <div class="add-list-form" id="add-list-form" style="display:none;">
-                    <form method="post" action="/Board/AddColumn">
-                        <input type="text" class="list-name-input" name="title" placeholder="Enter list title..." autofocus autocomplete="off" />
-                        <div class="composer-controls">
-                            <button type="submit" class="confirm-add-card">Add List</button>
-                            <div class="cancel-add-card" onclick="toggleAddList(false)">×</div>
-                        </div>
-                    </form>
+            }
+    
+            <!-- Add Another List Button -->
+            <div class="list-wrapper add-list-wrapper">
+                <div class="add-list-container">
+                    <a class="open-add-list" id="open-add-list" href="javascript:void(0)" onclick="toggleAddList(true)">
+                        + Add another list
+                    </a>
+                    <div class="add-list-form" id="add-list-form" style="display:none;">
+                        <form method="post" action="/Board/AddColumn">
+                            <input type="text" class="list-name-input" name="title" placeholder="Enter list title..." autofocus autocomplete="off" />
+                            <div class="composer-controls">
+                                <button type="submit" class="confirm-add-card">Add List</button>
+                                <div class="cancel-add-card" onclick="toggleAddList(false)">×</div>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
+}
 
 <script>
     function toggleComposer(columnId, show) {
