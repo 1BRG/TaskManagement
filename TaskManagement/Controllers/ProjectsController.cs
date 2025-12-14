@@ -63,6 +63,7 @@ namespace TaskManagement.Controllers
             ModelState.Remove(nameof(project.Organizer));
             ModelState.Remove(nameof(project.Members));
             ModelState.Remove(nameof(project.Tasks));
+            ModelState.Remove(nameof(project.Columns));
             if (ModelState.IsValid)
             {
                 db.Projects.Add(project);
