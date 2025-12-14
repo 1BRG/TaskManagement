@@ -17,6 +17,7 @@ namespace TaskManagement.Data
         public DbSet<AppTask> AppTasks { get; set; }
         public DbSet<ProjectMember> ProjectMembers { get; set; }
         public DbSet<Comment> Comments { get; set; }
+        public DbSet<BoardColumn> BoardColumns { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -52,6 +53,13 @@ namespace TaskManagement.Data
                 .WithMany(u => u.AssignedTasks)
                 .HasForeignKey(t => t.AssignedToUserId)
                 .OnDelete(DeleteBehavior.SetNull); // Dacă membrul pleacă, task-ul rămâne neasignat
+
+             // 5. Relatia BoardColumn - Tasks
+             builder.Entity<AppTask>()
+                 .HasOne(t => t.BoardColumn)
+                 .WithMany(c => c.Tasks)
+                 .HasForeignKey(t => t.BoardColumnId)
+                 .OnDelete(DeleteBehavior.Cascade); // Delete column -> delete tasks
         }
     }
 }

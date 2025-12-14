@@ -22,7 +22,13 @@ namespace TaskManagement.Models
         [Required]
         public PriorityEnum Priority { get; set; } = PriorityEnum.Medium;
 
-        public string? ColumnName { get; set; } // For Trello Board mapping
+
+
+        // Foreign Key to BoardColumn
+        public int? BoardColumnId { get; set; }
+        
+        [ForeignKey("BoardColumnId")]
+        public virtual BoardColumn? BoardColumn { get; set; }
 
         public int Order { get; set; } // For visual sorting
 
