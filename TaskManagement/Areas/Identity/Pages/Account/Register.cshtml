@@ -12,14 +12,14 @@
             <h2>Create a new account.</h2>
             <hr />
             <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
-            <!-- ADAUGĂ ASTA PENTRU PRENUME -->
+            <!-- ADAUGa ASTA PENTRU PRENUME -->
             <div class="form-floating mb-3">
                 <input asp-for="Input.FirstName" class="form-control" placeholder="John" />
                 <label asp-for="Input.FirstName">First Name</label>
                 <span asp-validation-for="Input.FirstName" class="text-danger"></span>
             </div>
 
-            <!-- ADAUGĂ ASTA PENTRU NUME -->
+            <!-- ADAUGa ASTA PENTRU NUME -->
             <div class="form-floating mb-3">
                 <input asp-for="Input.LastName" class="form-control" placeholder="Doe" />
                 <label asp-for="Input.LastName">Last Name</label>

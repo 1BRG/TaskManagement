@@ -101,6 +101,12 @@ namespace TaskManagement.Controllers
         [Authorize(Roles = "Admin, User")]
         public IActionResult Edit(Project project)
         {
+            var ceva = 0;
+            ModelState.Remove(nameof(project.OrganizerId));
+            ModelState.Remove(nameof(project.Organizer));
+            ModelState.Remove(nameof(project.Members));
+            ModelState.Remove(nameof(project.Tasks));
+            ModelState.Remove(nameof(project.Columns));
             if (ModelState.IsValid)
             {
                 var existingProject = db.Projects.Find(project.Id);
@@ -109,12 +115,14 @@ namespace TaskManagement.Controllers
                     // mesaj de eroare - nu esti organizator sau admin
                     return RedirectToAction("Index", "Dashboard");
                 }
-                existingProject = project;
+                existingProject.Title = project.Title;
+                existingProject.Description = project.Description;
+
                 db.SaveChanges();
                 //mesaj de succes
-                return View(existingProject);
+                return RedirectToAction("Edit", existingProject);
             }
-            return View();
+            return RedirectToAction("Edit", project);
         }
 
         [HttpPost]
@@ -122,10 +130,12 @@ namespace TaskManagement.Controllers
         public IActionResult AddMember(int projectId, string email)
         {
             var userId = _userManager.GetUserId(User);
+
             var isAdmin = User.IsInRole("Admin");
             var project = db.Projects.Find(projectId);
             var existingUser = db.Users.FirstOrDefault(u => u.Email == email);
-            if (project != null && (User.IsInRole("Admin") || project.OrganizerId == userId) && existingUser != null)
+            var isAlreadyMember = db.ProjectMembers.Any(pm => pm.ProjectId == projectId && pm.UserId == existingUser.Id);
+            if (project != null && (User.IsInRole("Admin") || project.OrganizerId == userId) && existingUser != null && isAlreadyMember == false)
             {
                 var projectMember = new ProjectMember
                 {
@@ -134,6 +144,26 @@ namespace TaskManagement.Controllers
                     JoinedDate = DateTime.Now
                 };
                 db.ProjectMembers.Add(projectMember);
+                db.SaveChanges();
+                //mesaj de succes
+            }
+
+            //mesaj de eroare
+            return RedirectToAction("Edit", project);
+        }
+        [HttpPost]
+        [Authorize(Roles = "Admin, User")]
+        public IActionResult RemoveMember(int projectId, string removedUserId)
+        {
+            var userId = _userManager.GetUserId(User);
+
+            var isAdmin = User.IsInRole("Admin");
+            var project = db.Projects.Find(projectId);
+            var existingUser = db.Users.FirstOrDefault(u => u.Id == removedUserId);
+            if (project != null && (User.IsInRole("Admin") || project.OrganizerId == userId) && existingUser != null && existingUser.Id != userId)
+            {
+                var projectMember = db.ProjectMembers.FirstOrDefault(u => u.ProjectId == projectId && u.UserId == removedUserId);
+                db.ProjectMembers.Remove(projectMember);
                 db.SaveChanges();
                 //mesaj de succes
             }

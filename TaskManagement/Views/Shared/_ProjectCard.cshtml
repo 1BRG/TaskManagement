@@ -10,8 +10,8 @@
                asp-action="Edit"
                asp-route-id="@Model?.Id"
                class="btn btn-sm btn-outline-secondary"
-               title="Editează proiect"
-               aria-label="Editează proiect @Model?.Title">
+               title="Editeaza proiect"
+               aria-label="Editeaza proiect @Model?.Title">
                 ⚙️
             </a>
         </div>
@@ -24,8 +24,8 @@
         <!-- descriere (preview sigur) -->
         <p class="card-text flex-grow-1">
             @{
-                var desc = string.IsNullOrWhiteSpace(Model?.Description) ? "Fără descriere" : Model.Description;
-                var maxChars = 150; // ajustează cât vrei să afișezi
+                var desc = string.IsNullOrWhiteSpace(Model?.Description) ? "Fara descriere" : Model.Description;
+                var maxChars = 150; // ajusteaza cat vrei sa afisezi
                 var preview = desc.Length > maxChars ? desc.Substring(0, Math.Min(maxChars, desc.Length)) + "…" : desc;
             }
             @preview

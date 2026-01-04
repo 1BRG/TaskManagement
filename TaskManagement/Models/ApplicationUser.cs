@@ -15,7 +15,7 @@ namespace TaskManagement.Models
 
         public DateTime CreatedDate { get; set; } = DateTime.Now;
 
-        // Navigational Properties (Relații)
+        // Navigational Properties (Relatii)
         public virtual ICollection<Project> OwnedProjects { get; set; } // Proiecte create
         public virtual ICollection<ProjectMember> ProjectsJoined { get; set; } // Proiecte unde e membru
         public virtual ICollection<AppTask> AssignedTasks { get; set; } // Task-uri asignate
