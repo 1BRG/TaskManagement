@@ -1,0 +1,26 @@
+﻿/* container pentru alert (poate fi mutat în header sau layout) */
+.alert-container {
+    position: fixed;
+    top: 70px; /* ajustează dacă ai navbar mai înalt */
+    right: 20px;
+    z-index: 1060;
+    width: 340px; /* sau 100% pe mobile (vede mai jos) */
+}
+
+/* stil custom pentru alertă */
+.alert-custom {
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+    padding: .75rem 1rem;
+    margin-bottom: .75rem;
+}
+
+/* responsiv: pe ecrane mici alertele să fie full-width centrate */
+@media (max-width: 576px) {
+    .alert-container {
+        left: 12px;
+        right: 12px;
+        width: auto;
+        top: 12px;
+    }
+}
