@@ -1,15 +1,14 @@
 ﻿@model List<TaskManagement.Models.Project>
 
 <div class="container py-4">
+    <partial name = "_Alert" />
     <!-- Header cu Titlu si Buton de Adaugare -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h2 class="fw-bold text-primary"><i class="bi bi-speedometer2"></i> Dashboard</h2>
             <p class="text-muted mb-0">Gestionează proiectele și echipa ta.</p>
         </div>
-        <a asp-controller="Projects" asp-action="New" class="btn btn-success shadow-sm">
-            <i class="bi bi-plus-lg"></i> Proiect Nou
-        </a>
+        
     </div>
 
     <!-- Verificare daca exista proiecte -->
