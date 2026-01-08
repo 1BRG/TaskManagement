@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TaskManagement.Data;
 using TaskManagement.Models;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace TaskManagement.Controllers
 {
@@ -27,14 +28,32 @@ namespace TaskManagement.Controllers
 
 
         [Authorize(Roles = "Admin, User")]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int ?page)
         {
             var userId = _userManager.GetUserId(User);
             var isAdmin = _userManager.IsInRoleAsync(await _userManager.GetUserAsync(User), "Admin").Result;
-            var projectsList = await db.Projects
+
+            int pageSize = 6; 
+            int pageNumber = page ?? 1;
+
+
+            var query = db.Projects
                                .Include(p => p.Organizer)
-                               .Where(p => p.Members.Any(pm => pm.UserId == userId) || isAdmin)
+                               .Where(p => p.Members.Any(pm => pm.UserId == userId) || isAdmin);
+
+            var projectsList = await query
+                               .OrderByDescending(p => p.CreatedDate)
+                               .Skip((pageNumber - 1) * pageSize)
+                               .Take(pageSize)
                                .ToListAsync();
+
+            int totalItems = await query.CountAsync();
+            int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+            ViewBag.CurrentPage = pageNumber;
+            ViewBag.TotalPages = totalPages;
+
+
+
             ViewBag.User = _userManager.GetUserAsync(User).Result;
             return View(projectsList);
         }
