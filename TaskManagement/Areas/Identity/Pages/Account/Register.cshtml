@@ -2,7 +2,8 @@
 @model RegisterModel
 @{
     ViewData["Title"] = "Create Account";
-    Layout = null; /* Opțional: Dacă vrei să ascunzi meniul site-ului pe pagina de login/register, scoate comentariul. Altfel, lasă Layout-ul default */
+    ViewData["HideNav"] = true;
+    //Layout = null; /* Opțional: Dacă vrei să ascunzi meniul site-ului pe pagina de login/register, scoate comentariul. Altfel, lasă Layout-ul default */
 }
 
 <!-- Includem Bootstrap manual doar dacă am scos Layout-ul standard (Layout = null).

@@ -7,6 +7,11 @@ using Microsoft.EntityFrameworkCore;
 using TaskManagement.Data;
 using TaskManagement.Models;
 
+public class ToggleTaskDto
+{
+    public int Id { get; set; }
+}
+
 namespace TaskManagement.Controllers
 {
     public class UsersController : Controller
@@ -38,9 +43,10 @@ namespace TaskManagement.Controllers
             foreach (var user in users)
             {
                 var roles = await _userManager.GetRolesAsync(user);
-                var projectCount = user.OwnedProjects.Count + user.ProjectsJoined.Count;
+
                 var tasksCount = user.AssignedTasks.Count;
                 var allProjects = user.OwnedProjects.Concat(user.ProjectsJoined.Select(p => p.Project)).Distinct().ToList();
+                var projectCount = allProjects.Count();
                 viewModel.Add(new UserProfileViewModel
                 {
                     Id = user.Id,
@@ -61,23 +67,33 @@ namespace TaskManagement.Controllers
         [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> UserProfile(string id)
         {
-            if(id == null)
+            if (id == null)
             {
                 return NotFound();
             }
-            var user = await db.Users.Include(p => p.OwnedProjects).
-                Include(p => p.ProjectsJoined).
+
+            if (db.Users.Where(u => u.Id == id) == null)
+                return NotFound();
+
+            var currentUser = _userManager.GetUserId(User);
+
+            var user = await db.Users.Where(u => u.Id == id).
+                Include(p => p.OwnedProjects).
+                Include(p => p.ProjectsJoined.Where(pj => pj.Project.Members.Any(u => u.UserId == currentUser))).
                     ThenInclude(p => p.Project).
                 Include(p => p.AssignedTasks).ThenInclude(t => t.Project)
-                .FirstOrDefaultAsync(u => u.Id == id);
-            
-            if(user == null)
-                    return NotFound();
-            var currentUser = await _userManager.GetUserAsync(User);
-            var isOwnerOrAdmin = User.IsInRole("Admin") || user == currentUser;
+                .FirstOrDefaultAsync();
+
+
+
+
+
+            var isOwnerOrAdmin = User.IsInRole("Admin") || user == await _userManager.GetUserAsync(User);
             var roles = await _userManager.GetRolesAsync(user);
 
-            var allProjects = user.OwnedProjects.Concat(user.ProjectsJoined.Select(p => p.Project)).Distinct().ToList();
+            //var allProjects = user.OwnedProjects.Concat(user.ProjectsJoined.Select(p => p.Project)).Distinct().ToList();
+            var allProjects = user.ProjectsJoined.Select(p => p.Project).Distinct().ToList();
+
             var viewModel = new UserProfileViewModel
             {
                 Id = user.Id,
@@ -92,6 +108,36 @@ namespace TaskManagement.Controllers
                 IsOwnerOrAdmin = isOwnerOrAdmin
             };
             return View(viewModel);
+        }
+
+
+
+        [Authorize(Roles = "Admin, User")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ToggleTaskCompletion([FromBody] ToggleTaskDto dto)
+        {
+            if (dto == null || dto.Id <= 0)
+                return BadRequest(new { success = false, error = "Payload invalid" });
+
+            var task = await db.AppTasks.Include(t => t.Project).FirstOrDefaultAsync(t => t.Id == dto.Id);
+            if (task == null)
+                return NotFound(new { success = false, error = "Task not found" });
+
+            // permisii: admin sau user asignat
+            var currentUserId = _userManager.GetUserId(User);
+            var isAdmin = User.IsInRole("Admin");
+            if (!isAdmin && task.AssignedToUserId != currentUserId)
+                return Forbid();
+
+            // toggle
+            task.IsCompleted = !task.IsCompleted;
+            task.Status = task.IsCompleted ? TaskStatusEnum.Completed : TaskStatusEnum.InProgress;
+            task.EndDate = DateTime.Now;
+            db.AppTasks.Update(task);
+            await db.SaveChangesAsync();
+
+            return new JsonResult(new { success = true, isCompleted = task.IsCompleted });
         }
 
     }

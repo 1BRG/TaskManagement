@@ -1,5 +1,6 @@
-﻿@model TaskManagement.Models.Project
-
+﻿@using Microsoft.AspNetCore.Identity
+@model TaskManagement.Models.Project
+@inject UserManager<ApplicationUser> UserManager
 
 <div class="card project-card shadow-sm h-100 border-0 rounded-3">
     <div class="card-body d-flex flex-column p-4">
@@ -50,6 +51,10 @@
         <div class="d-flex justify-content-between align-items-center">
 
             <!-- Avatar Organizator -->
+            @{
+                var userId = Model.OrganizerId;
+            
+                <a asp-controller="Users" asp-action="UserProfile" asp-route-id=@userId class="nav-link">
             <div class="d-flex align-items-center" title="Organizator: @Model?.Organizer?.Email">
                 @{
                     // Luam prima litera din Nume sau Email pentru avatar
@@ -67,6 +72,8 @@
                     <span class="fw-bold text-dark">@Model?.Organizer?.FirstName</span>
                 </div>
             </div>
+            </a>
+            }
 
             <!-- Buton Deschide -->
             <a asp-controller="Board"
