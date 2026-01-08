@@ -87,6 +87,7 @@
                         </tr>
                     </thead>
                     <tbody id="usersTableBody">
+
                         @foreach (var user in Model)
                         {
                             var avatarInitials = ((user.FirstName?.Length ?? 0) > 0 ? user.FirstName[0].ToString() : "")

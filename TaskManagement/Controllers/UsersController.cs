@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TaskManagement.Data;
 using TaskManagement.Models;
+using TaskManagement.ViewModels;
 
 public class ToggleTaskDto
 {
@@ -140,5 +141,57 @@ namespace TaskManagement.Controllers
             return new JsonResult(new { success = true, isCompleted = task.IsCompleted });
         }
 
+
+
+
+
+
+        // 1. AFISARE PAGINA (GET)
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> EditProfile(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null) return NotFound();
+
+            // Securitate: Doar proprietarul sau Adminul intra
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser.Id != user.Id && !await _userManager.IsInRoleAsync(currentUser, "Admin"))
+            {
+                return Forbid();
+            }
+
+            var model = new UserEditViewModel
+            {
+                Id = user.Id,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber
+            };
+
+            return View(model);
+        }
+
+        // 2. SALVARE DATE (POST)
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> EditProfile(UserEditViewModel model)
+        {
+            if (!ModelState.IsValid) return View(model);
+
+            var user = await _userManager.FindByIdAsync(model.Id);
+            if (user == null) return NotFound();
+
+            // Actualizam doar datele non-critice
+            user.FirstName = model.FirstName;
+            user.LastName = model.LastName;
+            user.PhoneNumber = model.PhoneNumber;
+
+            await _userManager.UpdateAsync(user);
+
+            TempData["Message"] = "Profil actualizat cu succes!";
+            return RedirectToAction("Show", new { id = user.Id });
+        }
     }
 }

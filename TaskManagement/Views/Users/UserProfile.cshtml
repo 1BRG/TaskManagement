@@ -43,7 +43,9 @@
                     @if (Model.IsOwnerOrAdmin)
                     {
                         <div class="mt-4">
-                            <button class="btn btn-outline-dark w-100">Editează Profil</button>
+                            <a asp-controller="Users" asp-action="EditProfile" asp-route-id="@Model.Id" class="btn btn-outline-dark w-100">
+                                <i class="bi bi-pencil-square"></i> Editează Profil
+                            </a>
                         </div>
                     }
                 </div>
