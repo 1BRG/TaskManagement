@@ -1,0 +1,124 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+@model TaskManagement.Models.UserProfileViewModel
+
+<div class="container mt-5">
+    <div class="row">
+        <!-- Coloana Stanga: Informatii User -->
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <!-- Avatar Mare -->
+                        <div class="bg-dark text-white rounded-circle d-inline-flex justify-content-center align-items-center display-4 shadow" style="width: 120px; height: 120px;">
+                            @Model.FirstName[0]@Model.LastName[0]
+                        </div>
+                    </div>
+                    <h4>@Model.FullName</h4>
+                    <p class="text-muted">@Model.Email</p>
+                    
+                    @if (Model.Role == "Admin")
+                    {
+                        <span class="badge bg-danger mb-3">Administrator</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary mb-3">Membru Echipa</span>
+                    }
+
+                    <div class="d-flex justify-content-around mt-3 border-top pt-3">
+                        <div>
+                            <h5>@Model.ProjectsCount</h5>
+                            <small class="text-muted">Proiecte</small>
+                        </div>
+                        <div>
+                            <h5>@Model.TasksCount</h5>
+                            <small class="text-muted">Task-uri</small>
+                        </div>
+                    </div>
+
+                    @if (Model.IsOwnerOrAdmin)
+                    {
+                        <div class="mt-4">
+                            <button class="btn btn-outline-dark w-100">Editează Profil</button>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Coloana Dreapta: Activitate (Tabs) -->
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white">
+                    <ul class="nav nav-tabs card-header-tabs" id="profileTabs" role="tablist">
+                        <li class="nav-item">
+                            <button class="nav-link active" id="projects-tab" data-bs-toggle="tab" data-bs-target="#projects" type="button">Proiecte Active</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" id="tasks-tab" data-bs-toggle="tab" data-bs-target="#tasks" type="button">Task-uri Asignate</button>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <div class="tab-content" id="profileTabsContent">
+                        
+                        <!-- TAB 1: PROIECTE -->
+                        <div class="tab-pane fade show active" id="projects" role="tabpanel">
+                            @if (Model.Projects.Any())
+                            {
+                                <div class="row">
+                                    @foreach (var proj in Model.Projects)
+                                    {
+                                        <div class="col-md-6 mb-3">
+                                            <div class="card h-100 border-start border-4 border-primary">
+                                                <div class="card-body">
+                                                    <h5 class="card-title">@proj.Title</h5>
+                                                    <p class="card-text text-truncate">@proj.Description</p>
+                                                    <a href="#" class="btn btn-sm btn-primary">Vezi Board</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <p class="text-muted">Utilizatorul nu are proiecte active.</p>
+                            }
+                        </div>
+
+                        <!-- TAB 2: TASK-URI -->
+                        <div class="tab-pane fade" id="tasks" role="tabpanel">
+                            @if (Model.Tasks.Any())
+                            {
+                                <ul class="list-group list-group-flush">
+                                    @foreach (var task in Model.Tasks)
+                                    {
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <strong>@task.Title</strong>
+                                                <div class="small text-muted">în proiectul: @task.Project?.Title</div>
+                                            </div>
+                                            <span class="badge bg-@(task.Status.ToString() == "Completed" ? "success" : "warning")">
+                                                @task.Status
+                                            </span>
+                                        </li>
+                                    }
+                                </ul>
+                            }
+                            else
+                            {
+                                <p class="text-muted">Nu există task-uri asignate.</p>
+                            }
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

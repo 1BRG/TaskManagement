@@ -42,14 +42,20 @@
                                 @if (User.IsInRole("Admin"))
                                 {
                                     <li class="nav-item">
-                                    <a class="nav-link" asp-controller="Dashboard" asp-action="Index">
-                                    <i class="bi bi-grid-fill"></i> Utilizatori
+                                    <a class="nav-link" asp-controller="Users" asp-action="IndexUsers">
+                                            <i class="bi bi-grid-fill"></i> Utilizatori
                                     </a>
                                     </li>
                                    
                                 }
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Dashboard" asp-action="Index">
+                                        <i class="bi bi-grid-fill"></i> Dashboard
+                                    </a>
+                                </li>
 
-                                
+
+
                                 <li class="nav-item ms-lg-2">
                                     <a class="btn btn-sm btn-primary d-flex align-items-center gap-1 text-white"
                                        asp-controller="Projects" asp-action="New">

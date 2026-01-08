@@ -53,7 +53,7 @@ namespace TaskManagement.Controllers
             }
 
             // adaugare mesaj de eroare - nu esti membru
-            TempData["Error"] = "Nu ai acces la acest proiect (nu eşti membru).";
+           TempData["Error"] = "Nu ai acces la acest proiect (nu eşti membru).";
 
 
             return View("Home/Index");
