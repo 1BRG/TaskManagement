@@ -1,0 +1,50 @@
+﻿@page
+@model DeletePersonalDataModel
+@{
+    ViewData["Title"] = "Ștergere Cont";
+    Layout = "/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0"><i class="bi bi-exclamation-triangle-fill"></i> ZONA PERICULOASĂ</h4>
+                </div>
+                <div class="card-body text-center p-4">
+                    <h5 class="text-danger fw-bold">Ești sigur că vrei să ștergi acest cont?</h5>
+                    <p class="text-muted">
+                        Această acțiune este <strong>ireversibilă</strong>. Toate datele tale, inclusiv comentariile și asocierea la proiecte, vor fi șterse permanent.
+                    </p>
+
+                    <hr class="my-4" />
+
+                    <form id="delete-user" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+
+                        <!-- Identity cere parola pentru confirmare -->
+                        @if (Model.RequirePassword)
+                        {
+                            <div class="form-floating mb-4 text-start">
+                                <input asp-for="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="Introdu parola pentru confirmare" />
+                                <label asp-for="Input.Password" class="form-label">Introdu parola curentă pentru confirmare</label>
+                                <span asp-validation-for="Input.Password" class="text-danger"></span>
+                            </div>
+                        }
+
+                        <button class="btn btn-danger w-100 fw-bold py-2" type="submit">
+                            <i class="bi bi-trash3-fill"></i> DA, Șterge contul meu
+                        </button>
+
+                        <a href="/" class="btn btn-light w-100 mt-2">Nu, m-am răzgândit</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -23,7 +23,7 @@ namespace TaskManagement.Data
         {
             base.OnModelCreating(builder);
 
-            // 1. Configurare Cheie Compusă pentru ProjectMember (M-N)
+            // 1. Configurare Cheie Compusa pentru ProjectMember (M-N)
             builder.Entity<ProjectMember>()
                 .HasKey(pm => new { pm.ProjectId, pm.UserId });
 
@@ -32,27 +32,27 @@ namespace TaskManagement.Data
                 .HasOne(pm => pm.Project)
                 .WithMany(p => p.Members)
                 .HasForeignKey(pm => pm.ProjectId)
-                .OnDelete(DeleteBehavior.Cascade); // Dacă șterg proiectul, șterg și asocierile membrilor
+                .OnDelete(DeleteBehavior.Cascade); // Daca sterg proiectul, sterg si asocierile membrilor
 
             builder.Entity<ProjectMember>()
                 .HasOne(pm => pm.User)
                 .WithMany(u => u.ProjectsJoined)
                 .HasForeignKey(pm => pm.UserId)
-                .OnDelete(DeleteBehavior.Restrict); // Dacă șterg userul, nu șterg proiectul automat, doar asocierea (necesită logică extra sau Cascade atent)
+                .OnDelete(DeleteBehavior.Restrict); // Daca sterg userul, nu sterg proiectul automat, doar asocierea (necesita logica extra sau Cascade atent)
 
             // 3. Relatia Project - Organizer
             builder.Entity<Project>()
                 .HasOne(p => p.Organizer)
                 .WithMany(u => u.OwnedProjects)
                 .HasForeignKey(p => p.OrganizerId)
-                .OnDelete(DeleteBehavior.Restrict); // Important: Restrict pentru a evita cicluri la ștergere cu Identity
+                .OnDelete(DeleteBehavior.Restrict); // Important: Restrict pentru a evita cicluri la stergere cu Identity
 
             // 4. Relatia Task - Assigned User
             builder.Entity<AppTask>()
                 .HasOne(t => t.AssignedToUser)
                 .WithMany(u => u.AssignedTasks)
                 .HasForeignKey(t => t.AssignedToUserId)
-                .OnDelete(DeleteBehavior.SetNull); // Dacă membrul pleacă, task-ul rămâne neasignat
+                .OnDelete(DeleteBehavior.SetNull); // Daca membrul pleaca, task-ul ramane neasignat
 
              // 5. Relatia BoardColumn - Tasks
              builder.Entity<AppTask>()

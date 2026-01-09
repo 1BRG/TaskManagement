@@ -1,0 +1,97 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+<!--
+if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">TempData["Success"]</div>
+}
+if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">TempData["Error"]</div>
+}
+-->
+@* Views/Shared/_Alert.cshtml *@
+@using System.Collections
+@{
+    // Colectăm diferite chei TempData (compatibilitate: message/Message)
+    object successObj = TempData["Success"] ?? TempData["success"];
+    object errorObj = TempData["Error"] ?? TempData["error"];
+    object infoObj = TempData["Info"] ?? TempData["info"];
+    object warnObj = TempData["Warning"] ?? TempData["warning"];
+    object legacyMsg = TempData["Message"] ?? TempData["message"];
+
+    var alerts = new List<(string type, List<string> messages)>();
+
+    void AddAlert(object obj, string type)
+    {
+        if (obj == null) return;
+        // Dacă e un string
+        if (obj is string s) { alerts.Add((type, new List<string> { s })); return; }
+        // Dacă e o listă de string-uri (sau orice enumerable)
+        if (obj is IEnumerable en)
+        {
+            var list = new List<string>();
+            foreach (var it in en)
+            {
+                if (it != null) list.Add(it.ToString());
+            }
+            if (list.Any()) alerts.Add((type, list));
+            return;
+        }
+        // fallback
+        alerts.Add((type, new List<string> { obj.ToString() }));
+    }
+
+    AddAlert(successObj, "success");
+    AddAlert(errorObj, "danger");
+    AddAlert(infoObj, "info");
+    AddAlert(warnObj, "warning");
+    AddAlert(legacyMsg, "info"); // mesaje vechi puse la "message"
+}
+
+@if (alerts.Any())
+{
+    <div class="alert-container" aria-live="polite" aria-atomic="true">
+        @foreach (var a in alerts)
+        {
+            <div class="alert alert-@a.type alert-dismissible fade show alert-custom" role="alert">
+                <div class="d-flex">
+                    <div class="flex-grow-1">
+                        @foreach (var m in a.messages)
+                        {
+                            <div>@Html.Raw(m)</div>
+                        }
+                    </div>
+                    <button type="button" class="btn-close ms-3" data-bs-dismiss="alert" aria-label="Închide"></button>
+                </div>
+            </div>
+        }
+    </div>
+
+    <script>
+        (function () {
+            // Auto-dismiss după X ms (schimbă dacă vrei)
+            const AUTO_DISMISS_MS = 6000;
+            const alerts = document.querySelectorAll('.alert-container .alert');
+            alerts.forEach(function (a) {
+                // Folosim Bootstrap API ca să închidem corect
+                setTimeout(function () {
+                    try {
+                        var bsAlert = bootstrap.Alert.getInstance(a) || new bootstrap.Alert(a);
+                        bsAlert.close();
+                    } catch (e) {
+                        // fallback: eliminăm din DOM
+                        a.remove();
+                    }
+                }, AUTO_DISMISS_MS);
+            });
+        })();
+    </script>
+}
+
+
+
+

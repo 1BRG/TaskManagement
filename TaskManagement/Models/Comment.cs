@@ -9,7 +9,7 @@ namespace TaskManagement.Models
         public int Id { get; set; }
 
         [Required]
-        [StringLength(500, ErrorMessage = "Comentariul nu poate depăși 500 de caractere")]
+        [StringLength(500, ErrorMessage = "Comentariul nu poate depasi 500 de caractere")]
         public string Content { get; set; }
 
         public DateTime PostedAt { get; set; } = DateTime.Now;
