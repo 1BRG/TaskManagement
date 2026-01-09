@@ -11,8 +11,8 @@ using TaskManagement.Data;
 namespace TaskManagement.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251214183742_AddBoard")]
-    partial class AddBoard
+    [Migration("20251214195949_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
