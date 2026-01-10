@@ -19,6 +19,8 @@ namespace TaskManagement.ViewModels
         public string Email { get; set; } // Doar pentru afisare sau editare
 
         [Phone]
+        [StringLength(10, MinimumLength = 10, ErrorMessage = "Must be only 10 digits.")]
+        [RegularExpression(@"^\d+$", ErrorMessage = "Only numeric digits are allowed.")]
         public string? PhoneNumber { get; set; }
     }
 }
