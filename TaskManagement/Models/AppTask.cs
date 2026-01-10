@@ -19,19 +19,26 @@ namespace TaskManagement.Models
         [Required]
         public TaskStatusEnum Status { get; set; } = TaskStatusEnum.NotStarted;
 
-        [Required]
-        public PriorityEnum Priority { get; set; } = PriorityEnum.Medium;
+        // Removing Priority
+        // public PriorityEnum Priority { get; set; } = PriorityEnum.Medium;
 
+        public int Order { get; set; }
+        
+        public bool IsArchived { get; set; }
+        public DateTime? ArchivedDate { get; set; }
+        
+        public int ProjectId { get; set; }
+        [ForeignKey("ProjectId")]
+        public virtual Project Project { get; set; }
 
+        public string? AssignedToUserId { get; set; }
+        [ForeignKey("AssignedToUserId")]
+        public virtual ApplicationUser? AssignedToUser { get; set; }
 
         // Foreign Key to BoardColumn
         public int? BoardColumnId { get; set; }
-
         [ForeignKey("BoardColumnId")]
         public virtual BoardColumn? BoardColumn { get; set; }
-
-        public int Order { get; set; } // For visual sorting
-
 
         public bool IsCompleted { get; set; }
 
@@ -45,16 +52,8 @@ namespace TaskManagement.Models
         public string? MediaUrl { get; set; }
         public MediaTypeEnum? MediaType { get; set; }
 
-        // Relatie cu Proiectul
-        public int ProjectId { get; set; }
-        [ForeignKey("ProjectId")]
-        public virtual Project Project { get; set; }
-
-        // Relatie cu Membrul asignat (poate fi null)
-        public string? AssignedToUserId { get; set; }
-        [ForeignKey("AssignedToUserId")]
-        public virtual ApplicationUser? AssignedToUser { get; set; }
-
+        public ICollection<BoardLabel> Labels { get; set; } = new List<BoardLabel>();
+        public ICollection<TaskImage> Images { get; set; } = new List<TaskImage>();
         public virtual ICollection<Comment> Comments { get; set; }
     }
 }
