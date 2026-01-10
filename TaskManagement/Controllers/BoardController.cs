@@ -14,10 +14,12 @@ namespace TaskManagement.Controllers
     public class BoardController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly Services.AiStrategistService _aiService;
 
-        public BoardController(ApplicationDbContext context)
+        public BoardController(ApplicationDbContext context, Services.AiStrategistService aiService)
         {
             _context = context;
+            _aiService = aiService;
         }
 
         public IActionResult Index(int id)
@@ -353,6 +355,18 @@ namespace TaskManagement.Controllers
              
              var tasks = await tasksQuery.OrderByDescending(t => t.ArchivedDate).ToListAsync();
              return PartialView("_ArchiveHubPartial", tasks);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetProjectInsights(int projectId)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var project = await _context.Projects.FirstOrDefaultAsync(p => p.Id == projectId && p.OrganizerId == userId);
+            
+            if (project == null) return Unauthorized();
+            
+            var insights = await _aiService.GenerateProjectInsightsAsync(projectId);
+            return Json(new { success = true, insights });
         }
     }
 }
