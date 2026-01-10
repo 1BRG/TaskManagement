@@ -147,7 +147,7 @@
                                                 <div class="d-flex flex-wrap">
                                                     @foreach (var proj in user.Projects)
                                                     {
-                                                        <a href="@Url.Action("ProjectDetails", "Projects", new { id = proj.Id })" class="btn btn-sm btn-outline-secondary project-chip">
+                                                        <a href="@Url.Action("Index", "Board", new { id = proj.Id })" class="btn btn-sm btn-outline-secondary project-chip">
                                                             <i class="bi bi-folder2-open"></i> @proj.Title
                                                         </a>
                                                     }
