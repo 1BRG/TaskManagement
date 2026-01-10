@@ -58,15 +58,6 @@
                                     <input type="hidden" name="projectId" value="@Model.Id" />
                                     <input type="hidden" name="columnId" value="@col.Id" />
                                     <textarea class="composer-textarea" name="title" placeholder="What needs to be done?" autofocus></textarea>
-                                    
-                                    <!-- Inputs -->
-                                    <div class="composer-options">
-                                        <!-- Labels removed from creation -->
-                                        <label class="composer-file-btn">
-                                            <i class="bi bi-image"></i>
-                                            <input type="file" name="coverImage" accept="image/*" />
-                                        </label>
-                                    </div>
 
                                     <div class="composer-controls">
                                         <button type="submit" class="confirm-add-card">Add Card</button>
@@ -121,10 +112,33 @@
         </div>
     </div>
     
-    <!-- Header Archive Button Injection --> 
-    <!-- Note: Ideally this would be in _Layout or Header but we can inject absolute for now or user told "Hub triggered by icon" -->
-    <div class="board-header-actions" style="position:fixed; top: 12px; right: 20px; z-index: 1000;">
-         <button class="btn-archive-toggle" onclick="toggleArchiveHub()" title="Open Archive"><i class="bi bi-archive"></i> Archive</button>
+    <!-- Header Actions -->
+    <div class="board-header-actions" style="position:fixed; top: 12px; right: 20px; z-index: 1000; display: flex; gap: 8px;">
+         <button class="btn-insights-toggle" onclick="toggleInsightsPanel()" title="AI Project Insights">
+             <i class="bi bi-lightbulb"></i> AI Insights
+         </button>
+         <button class="btn-archive-toggle" onclick="toggleArchiveHub()" title="Open Archive">
+             <i class="bi bi-archive"></i> Archive
+         </button>
+    </div>
+
+    <!-- AI Insights Panel -->
+    <div id="insights-panel" class="insights-overlay" style="display:none;" onclick="if(event.target === this) closeInsightsPanel()">
+        <div class="insights-panel-content">
+            <div class="insights-header">
+                <h3><i class="bi bi-lightbulb-fill"></i> AI Project Strategist</h3>
+                <button onclick="closeInsightsPanel()" title="Close"><i class="bi bi-x-lg"></i></button>
+            </div>
+            <div class="insights-body" id="insights-body">
+                <div class="insights-placeholder">
+                    <i class="bi bi-stars"></i>
+                    <p>Click below to generate AI-powered insights about your project.</p>
+                    <button class="btn-generate-insights" onclick="generateInsights()">
+                        <i class="bi bi-magic"></i> Analyze Project
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Task Details Modal -->
@@ -634,9 +648,77 @@
         document.addEventListener('keydown', function(event) {
             if(event.key === 'Escape') {
                 closeArchiveHub();
+                closeInsightsPanel();
                 closeModal();
             }
         });
+
+        // --- AI Insights Panel ---
+        function toggleInsightsPanel() {
+            let panel = document.getElementById('insights-panel');
+            if(panel.style.display === 'none' || panel.style.display === '') {
+                panel.style.display = 'flex';
+            } else {
+                closeInsightsPanel();
+            }
+        }
+        
+        function closeInsightsPanel() {
+            document.getElementById('insights-panel').style.display = 'none';
+        }
+        
+        async function generateInsights() {
+            let body = document.getElementById('insights-body');
+            
+            // Show loading state
+            body.innerHTML = `
+                <div class="insights-loading">
+                    <div class="loading-spinner"></div>
+                    <p>Analyzing your project...</p>
+                    <span>This may take a few moments</span>
+                </div>
+            `;
+            
+            try {
+                let res = await fetch('/Board/GetProjectInsights?projectId=@Model.Id');
+                let data = await res.json();
+                
+                if(data.success) {
+                    // Render markdown-like content
+                    body.innerHTML = `
+                        <div class="insights-content">
+                            ${renderMarkdown(data.insights)}
+                        </div>
+                        <div class="insights-footer">
+                            <button class="btn-regenerate" onclick="generateInsights()">
+                                <i class="bi bi-arrow-clockwise"></i> Regenerate
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    body.innerHTML = `<div class="insights-error"><i class="bi bi-exclamation-triangle"></i> Failed to generate insights</div>`;
+                }
+            } catch(e) {
+                body.innerHTML = `<div class="insights-error"><i class="bi bi-exclamation-triangle"></i> ${e.message}</div>`;
+            }
+        }
+        
+        function renderMarkdown(text) {
+            // Simple markdown-to-HTML conversion
+            return text
+                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.+?)\*/g, '<em>$1</em>')
+                .replace(/^### (.+)$/gm, '<h4>$1</h4>')
+                .replace(/^## (.+)$/gm, '<h3>$1</h3>')
+                .replace(/^# (.+)$/gm, '<h2>$1</h2>')
+                .replace(/^- (.+)$/gm, '<li>$1</li>')
+                .replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>')
+                .replace(/\n\n/g, '</p><p>')
+                .replace(/^(.+)$/gm, function(match) {
+                    if(match.startsWith('<')) return match;
+                    return match;
+                });
+        }
 
     </script>
 </body>
