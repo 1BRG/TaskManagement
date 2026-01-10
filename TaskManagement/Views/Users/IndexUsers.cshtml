@@ -1,0 +1,250 @@
+﻿@model IEnumerable<TaskManagement.Models.UserProfileViewModel>
+
+@{
+    ViewData["Title"] = "Administrare Utilizatori";
+}
+
+<!-- Stiluri specifice view-ului (poți muta în site.css) -->
+<style>
+    .user-avatar {
+        width: 44px;
+        height: 44px;
+        font-weight: 700;
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 50%;
+        color: #fff;
+        background: linear-gradient(135deg, #4a6cf7, #6fc5ff);
+        box-shadow: 0 2px 6px rgba(16,24,40,0.08);
+        flex-shrink: 0;
+    }
+
+    .table thead th {
+        border-bottom: 0;
+    }
+
+    .card.user-card {
+        border: 0;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: rgba(13,110,253,0.03);
+    }
+
+    .badge-pill {
+        border-radius: 999px;
+        padding: .45em .6em;
+        font-size: .8rem;
+    }
+
+    .collapse-inner {
+        border-left: 4px solid rgba(13,110,253,0.12);
+        background: rgba(13,110,253,0.02);
+        border-radius: 0 0 8px 8px;
+    }
+
+    .project-chip {
+        border-radius: 10px;
+        margin-right: .5rem;
+        margin-bottom: .4rem;
+    }
+
+    .small-muted {
+        font-size: .9rem;
+        color: #6c757d;
+    }
+    }
+</style>
+
+<div class="container mt-5">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start mb-4 gap-3">
+        <div class="d-flex w-100 w-md-50 align-items-center gap-2">
+            <div class="input-group">
+                <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                <input id="userSearch" type="text" class="form-control" placeholder="Caută după nume, email sau proiect..." aria-label="Caută utilizator">
+            </div>
+        </div>
+
+
+    </div>
+
+    <h2 class="mb-3"><i class="bi bi-people-fill text-primary"></i> Administrare Utilizatori (Admin)</h2>
+
+    <div class="card user-card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col">Nume</th>
+                            <th scope="col" class="desktop-only">Email</th>
+                            <th scope="col">Rol</th>
+                            <th scope="col" class="desktop-only">Statistici</th>
+                            <th scope="col" class="text-end">Acțiuni</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody">
+
+                        @foreach (var user in Model)
+                        {
+                            var avatarInitials = ((user.FirstName?.Length ?? 0) > 0 ? user.FirstName[0].ToString() : "")
+                            + ((user.LastName?.Length ?? 0) > 0 ? user.LastName[0].ToString() : "");
+                            <tr data-search="@($"{user.FullName} {user.Email} {string.Join(" ", user.Projects?.Select(p => p.Title) ?? Enumerable.Empty<string>())}")">
+                                <td class="py-3">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="user-avatar" title="@user.FullName">
+                                            @avatarInitials
+                                        </div>
+                                        <div>
+                                            <div class="fw-semibold">@user.FullName</div>
+                                            
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td class="desktop-only">@user.Email</td>
+
+                                <td>
+                                    @if (user.Role == "Admin")
+                                    {
+                                        <span class="badge badge-pill bg-danger text-white">ADMIN</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-pill bg-primary text-white">Membru</span>
+                                    }
+                                </td>
+
+                                <td class="desktop-only">
+                                    <span class="badge badge-pill bg-info text-dark me-1">@user.ProjectsCount @((user.ProjectsCount == 1) ? "Proiect" : "Proiecte")</span>
+                                    <span class="badge badge-pill bg-warning text-dark">@user.TasksCount @((user.TasksCount == 1) ? "Task" : "Task-uri")</span>
+                                </td>
+
+                                <td class="text-end">
+                                    <button class="btn btn-sm btn-outline-primary me-1" type="button"
+                                            data-bs-toggle="collapse" data-bs-target="#collapse-@user.Id"
+                                            aria-expanded="false" aria-controls="collapse-@user.Id">
+                                        <i class="bi bi-chevron-down collapse-icon"></i> <span class="desktop-only">Proiecte</span>
+                                    </button>
+
+                                    <a asp-action="UserProfile" asp-route-id="@user.Id" class="btn btn-sm btn-dark">
+                                        <i class="bi bi-person"></i> <span class="desktop-only">Profil</span>
+                                    </a>
+                                </td>
+                            </tr>
+
+                            <!-- Collapsible row (projects) -->
+                            <tr class="border-0">
+                                <td colspan="5" class="p-0 border-0">
+                                    <div class="collapse collapse-inner" id="collapse-@user.Id">
+                                        <div class="p-3">
+                                            <h6 class="mb-2 text-primary fw-semibold"><i class="bi bi-kanban"></i> Proiectele lui @user.FirstName</h6>
+                                            @if (user.Projects != null && user.Projects.Any())
+                                            {
+                                                <div class="d-flex flex-wrap">
+                                                    @foreach (var proj in user.Projects)
+                                                    {
+                                                        <a href="@Url.Action("ProjectDetails", "Projects", new { id = proj.Id })" class="btn btn-sm btn-outline-secondary project-chip">
+                                                            <i class="bi bi-folder2-open"></i> @proj.Title
+                                                        </a>
+                                                    }
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <div class="small-muted fst-italic">Nu este implicat în niciun proiect.</div>
+                                            }
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Footer card cu info / paginare (dacă vrei să adaugi paginare server-side, înlocuiește) -->
+        <div class="card-footer bg-white d-flex justify-content-between align-items-center">
+            <div class="small-muted">Total utilizatori: <strong>@Model.Count()</strong></div>
+            <div>
+                <!-- Placeholder pentru paginare -->
+                <!-- Poți integra PaginatedList sau un tag helper de la un pachet -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripturi specifice view-ului (poți muta într-un fișier .js) -->
+<script>
+    (function () {
+        // Filtrare client-side
+        const searchInput = document.getElementById('userSearch');
+        const clearBtn = document.getElementById('clearSearch');
+        const tableBody = document.getElementById('usersTableBody');
+
+        function normalizeText(s) {
+            return (s || '').toString().toLowerCase().trim();
+        }
+
+        function filterRows() {
+            const q = normalizeText(searchInput.value);
+            const rows = Array.from(tableBody.querySelectorAll('tr')).filter(r => r.dataset && r.dataset.search !== undefined);
+            rows.forEach(row => {
+                const text = normalizeText(row.getAttribute('data-search'));
+                const collapseRow = row.nextElementSibling;
+                if (q === '' || text.indexOf(q) !== -1) {
+                    row.style.display = '';
+                    if (collapseRow && collapseRow.querySelector('.collapse')) {
+                        // leave collapsed state as is
+                        collapseRow.style.display = '';
+                    }
+                } else {
+                    row.style.display = 'none';
+                    if (collapseRow && collapseRow.querySelector('.collapse')) {
+                        collapseRow.style.display = 'none';
+                    }
+                }
+            });
+        }
+
+        searchInput.addEventListener('input', filterRows);
+        clearBtn?.addEventListener('click', function () {
+            searchInput.value = '';
+            filterRows();
+            searchInput.focus();
+        });
+
+        // Rotește iconița chevron când collapse se deschide/închide
+        document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(btn => {
+            const icon = btn.querySelector('.collapse-icon');
+            const targetSelector = btn.getAttribute('data-bs-target');
+            if (!targetSelector) return;
+            const target = document.querySelector(targetSelector);
+            if (!target) return;
+
+            target.addEventListener('show.bs.collapse', function () {
+                icon.classList.add('rotated');
+                icon.style.transform = 'rotate(180deg)';
+                icon.style.transition = 'transform .25s';
+            });
+            target.addEventListener('hide.bs.collapse', function () {
+                icon.style.transform = 'rotate(0deg)';
+            });
+        });
+
+        // accesibilitate: căutare la Enter
+        searchInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                searchInput.value = '';
+                filterRows();
+            }
+        });
+
+        // init
+        filterRows();
+    })();
+</script>

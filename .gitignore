@@ -9,6 +9,9 @@
 *.user
 *.userosscache
 *.sln.docstates
+*.db-shm
+*.db-wal
+*.db-journal
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
@@ -368,3 +371,7 @@ FodyWeavers.xsd
 
 # Database
 *.db
+TaskManagement/taskmanagement.db-shm
+TaskManagement/taskmanagement.db-shm
+*.db-wal
+TaskManagement/taskmanagement.db-shm

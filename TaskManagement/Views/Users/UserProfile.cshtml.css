@@ -1,0 +1,63 @@
+﻿/* Container de scroll pentru tab-uri */
+.scroll-area {
+    max-height: 350px;
+    overflow-y: auto;
+    padding-right: .5rem;
+}
+
+/* --- Proiecte --- */
+.project-item {
+    display: flex;
+    flex-direction: column;
+    padding: .8rem 1rem;
+    border-radius: .75rem;
+    border: 1px solid #e3e6ef;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,.05);
+    transition: .15s;
+}
+
+    .project-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 3px 8px rgba(0,0,0,.12);
+    }
+
+.project-title {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin-bottom: .25rem;
+}
+
+.project-description {
+    font-size: .85rem;
+    color: #6c757d;
+    line-height: 1.2;
+    max-height: 2.6em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.project-meta {
+    margin-top: auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* --- Task-uri --- */
+.task-item {
+    padding: .6rem .75rem;
+    border-bottom: 1px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+    .task-item:last-child {
+        border-bottom: none;
+    }
+
+.task-completed {
+    opacity: .65;
+    text-decoration: line-through;
+}

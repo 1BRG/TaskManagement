@@ -1,9 +1,10 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TaskManagement.Data;
 using TaskManagement.Models;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace TaskManagement.Controllers
 {
@@ -27,29 +28,43 @@ namespace TaskManagement.Controllers
 
 
         [Authorize(Roles = "Admin, User")]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int ?page)
         {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-            {
-                // User cookie exists but user is not in DB (e.g. after reset)
-                // Force logout and redirect
-                await ((Microsoft.AspNetCore.Identity.SignInManager<ApplicationUser>)HttpContext.RequestServices.GetService(typeof(Microsoft.AspNetCore.Identity.SignInManager<ApplicationUser>))).SignOutAsync();
-                return RedirectToAction("Index", "Home");
-            }
+            var userId = _userManager.GetUserId(User);
+            var isAdmin = _userManager.IsInRoleAsync(await _userManager.GetUserAsync(User), "Admin").Result;
 
-            var userId = user.Id;
-            var isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
-            
-            var projectsList = await db.Projects
+            int pageSize = 6; 
+            int pageNumber = page ?? 1;
+
+
+            var query = db.Projects
                                .Include(p => p.Organizer)
-                               .Where(p => p.Members.Any(pm => pm.UserId == userId) || isAdmin)
+                               .Where(p => p.Members.Any(pm => pm.UserId == userId) || isAdmin);
+
+            var projectsList = await query
+                               .OrderByDescending(p => p.CreatedDate)
+                               .Skip((pageNumber - 1) * pageSize)
+                               .Take(pageSize)
                                .ToListAsync();
-                               
-            ViewBag.User = user;
+
+            int totalItems = await query.CountAsync();
+            int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+            ViewBag.CurrentPage = pageNumber;
+            ViewBag.TotalPages = totalPages;
+
+
+
+            ViewBag.User = _userManager.GetUserAsync(User).Result;
+        
+            
+
             return View(projectsList);
+
         }
 
+
+
+        
 
 
 

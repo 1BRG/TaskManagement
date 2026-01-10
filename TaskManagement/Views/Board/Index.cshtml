@@ -3,9 +3,7 @@
 
 @{
     ViewData["Title"] = Model.Title;
-    Layout = null; // No layout to ensure full page control for this prototype, or standard layout?
-                   // User said "Container: white-space: nowrap... height: 100vh". Better to exclude Layout or override deeply.
-                   // I'll assume Standalone page for vertical slice perfection.
+    Layout = null; 
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -13,18 +11,22 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - TaskManagement</title>
-    <link rel="stylesheet" href="~/css/board.css" />
+    <!-- New Premium Theme -->
+    <link rel="stylesheet" href="~/css/_kanban_theme.css" />
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </head>
 <body>
 
     <div class="board-wrapper">
-        <div class="board-header">
-            <a asp-action="Index" asp-controller="Home" class="nav-item">@Model.Title</a>
-        </div>
+        <header class="board-header">
+            <a asp-action="Index" asp-controller="Home" class="nav-item">
+                <i class="bi bi-arrow-left-short"></i> @Model.Title
+            </a>
+        </header>
 
         <div class="board-canvas">
             @{
-                // Iterate over BoardColumn objects
                 var columns = Model.Columns;
             }
 
@@ -33,30 +35,30 @@
                 <div class="list-wrapper">
                     <div class="list">
                         <div class="list-header">
-                            @col.Title
+                            <span class="list-title-text">@col.Title</span>
+                            <span class="badge" style="background: rgba(0,0,0,0.05); color: #64748b; margin:0;">@col.Tasks.Count</span>
                         </div>
 
-                        @* Pass Column ID to drop handler *@
                         <div class="list-cards" ondrop="drop(event, @col.Id)" ondragover="allowDrop(event)">
                             @foreach (var task in col.Tasks.OrderBy(t => t.Order))
                             {
                                 <div class="list-card" draggable="true" ondragstart="drag(event, '@task.Id')" data-task-id="@task.Id">
+                                    <div class="card-check-btn @(task.IsCompleted ? "checked" : "")" onclick="toggleTask(event, @task.Id)">
+                                        <i class="bi bi-check" style="pointer-events: none;"></i>
+                                    </div>
+                                    
                                     <div class="list-card-details">
-                                        <div class="card-check-btn @(task.IsCompleted ? "checked" : "")" onclick="toggleTask(event, @task.Id)">
-                                            @(task.IsCompleted ? "✓" : "")
-                                        </div>
-
                                         @if (task.Priority == PriorityEnum.High)
                                         {
-                                            <div class="badge badge-high" title="High Priority"></div>
+                                            <div class="badge badge-high">High</div>
                                         }
                                         else if (task.Priority == PriorityEnum.Medium)
                                         {
-                                            <div class="badge badge-medium" title="Medium Priority"></div>
+                                            <div class="badge badge-medium">Medium</div>
                                         }
                                         else if (task.Priority == PriorityEnum.Low)
                                         {
-                                            <div class="badge badge-low" title="Low Priority"></div>
+                                            <div class="badge badge-low">Low</div>
                                         }
 
                                         <span class="list-card-title @(task.IsCompleted ? "completed-task" : "")" id="title-@task.Id">@task.Title</span>
@@ -68,24 +70,29 @@
                         <!-- Add Card Footer -->
                         <div class="card-composer-container">
                             <a class="open-card-composer" id="open-composer-@col.Id" href="javascript:void(0)" onclick="toggleComposer(@col.Id, true)">
-                                + Add a card
+                                <i class="bi bi-plus"></i> Add a card
                             </a>
 
                             <div class="card-composer" id="composer-@col.Id">
                                 <form method="post" action="/Board/AddCard">
                                     <input type="hidden" name="projectId" value="@Model.Id" />
-                                    <input type="hidden" name="columnId" value="@col.Id" /> <!-- Pass ID not Name -->
-                                    <textarea class="composer-textarea" name="title" placeholder="Enter a title for this card..." autofocus></textarea>
+                                    <input type="hidden" name="columnId" value="@col.Id" />
+                                    <textarea class="composer-textarea" name="title" placeholder="What needs to be done?" autofocus></textarea>
+                                    
+                                    <div class="d-flex justify-content-between align-items-center" style="margin-bottom: 8px;">
+                                        <select name="priority" class="composer-select">
+                                            <option value="Low">Low Priority</option>
+                                            <option value="Medium" selected>Medium Priority</option>
+                                            <option value="High">High Priority</option>
+                                        </select>
+                                    </div>
 
                                     <div class="composer-controls">
                                         <button type="submit" class="confirm-add-card">Add Card</button>
-                                        <div class="cancel-add-card" onclick="toggleComposer(@col.Id, false)">×</div>
+                                        <div class="cancel-add-card" onclick="toggleComposer(@col.Id, false)">
+                                            <i class="bi bi-x"></i>
+                                        </div>
                                     </div>
-                                    <select name="priority" style="margin-top: 4px; border: none; background: transparent; color: #5e6c84; font-size: 12px;">
-                                        <option value="Low">Low</option>
-                                        <option value="Medium" selected>Medium</option>
-                                        <option value="High">High</option>
-                                    </select>
                                 </form>
                             </div>
                         </div>
@@ -93,19 +100,21 @@
                 </div>
             }
 
-            <!-- Add Another List Button -->
+            <!-- Add Another List Input -->
             <div class="list-wrapper add-list-wrapper">
                 <div class="add-list-container">
                     <a class="open-add-list" id="open-add-list" href="javascript:void(0)" onclick="toggleAddList(true)">
-                        + Add another list
+                        <i class="bi bi-plus-lg"></i> Add another list
                     </a>
                     <div class="add-list-form" id="add-list-form" style="display:none;">
                         <form method="post" action="/Board/AddColumn">
                             <input type="hidden" name="projectId" value="@Model.Id" />
-                            <input type="text" class="list-name-input" name="title" placeholder="Enter list title..." autofocus autocomplete="off" />
+                            <input type="text" class="list-name-input" name="title" placeholder="List title..." autofocus autocomplete="off" />
                             <div class="composer-controls">
                                 <button type="submit" class="confirm-add-card">Add List</button>
-                                <div class="cancel-add-card" onclick="toggleAddList(false)">×</div>
+                                <div class="cancel-add-card" onclick="toggleAddList(false)">
+                                    <i class="bi bi-x"></i>
+                                </div>
                             </div>
                         </form>
                     </div>
@@ -114,8 +123,8 @@
         </div>
     </div>
 
+    <!-- Logic Script (Unchanged Logic, just Icon tweaks) -->
     <script>
-        // ... toggleComposer, etc ... (Unchanged mostly, just ensure IDs match)
         function toggleComposer(columnId, show) {
             var openBtn = document.getElementById('open-composer-' + columnId);
             var composer = document.getElementById('composer-' + columnId);
@@ -123,9 +132,11 @@
             if (show) {
                 openBtn.style.display = 'none';
                 composer.style.display = 'block';
-                composer.querySelector('textarea').focus();
+                var textarea = composer.querySelector('textarea');
+                textarea.focus(); 
+                textarea.value = ''; // Clear on open
             } else {
-                openBtn.style.display = 'block';
+                openBtn.style.display = 'flex'; // Changed from block to flex for centering
                 composer.style.display = 'none';
             }
         }
@@ -133,14 +144,19 @@
         function toggleAddList(show) {
             var openBtn = document.getElementById('open-add-list');
             var form = document.getElementById('add-list-form');
+            var container = openBtn.parentElement;
 
             if (show) {
                 openBtn.style.display = 'none';
                 form.style.display = 'block';
                 form.querySelector('input').focus();
+                container.style.background = 'transparent'; // Hide container bg when form is open
+                container.style.backdropFilter = 'none';
             } else {
                 openBtn.style.display = 'block';
                 form.style.display = 'none';
+                container.style.background = 'rgba(255, 255, 255, 0.3)'; // Restore style
+                container.style.backdropFilter = 'blur(8px)';
             }
         }
 
@@ -166,9 +182,13 @@
         }
 
         document.addEventListener('dragend', function(event) {
-            if(event.target.classList.contains('list-card')) {
+            // Safe check if target is valid
+            if(event.target && event.target.classList && event.target.classList.contains('list-card')) {
                  event.target.classList.remove('dragging');
             }
+            // Also cleanup just in case
+            var draggingItems = document.querySelectorAll('.dragging');
+            draggingItems.forEach(i => i.classList.remove('dragging'));
         });
 
         function getDragAfterElement(container, y) {
@@ -196,7 +216,7 @@
                  // Call API with Column ID
                  fetch('/Board/MoveCard?taskId=' + taskId + '&targetColumnId=' + targetColumnId + '&index=' + index, { method: 'POST' });
             }
-
+            
             if(cardElement) cardElement.classList.remove('dragging');
         }
 
@@ -211,11 +231,11 @@
             // Toggle visual state
             if (btn.classList.contains('checked')) {
                 btn.classList.remove('checked');
-                btn.innerText = '';
+                // btn.innerText = ''; // using icon now
                 title.classList.remove('completed-task');
             } else {
                 btn.classList.add('checked');
-                btn.innerText = '✓';
+                // btn.innerText = '✓'; // using icon now
                 title.classList.add('completed-task');
             }
 
@@ -232,9 +252,7 @@
                 }
             }
         });
-
-        // Initialize drag logic (optional if not strictly needed since we use ondragstart attributes)
     </script>
-
 </body>
 </html>
+

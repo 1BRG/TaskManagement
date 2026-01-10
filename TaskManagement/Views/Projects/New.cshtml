@@ -4,7 +4,7 @@
     ViewData["Title"] = "Proiect Nou";
 }
 
-<h2>Creează un Proiect Nou</h2>
+<h2>Creeaza un Proiect Nou</h2>
 <hr />
 
 <div class="row">
@@ -12,7 +12,7 @@
         <form asp-action="New" method="post">
             <div class="form-group mb-3">
                 <label asp-for="Title" class="control-label">Titlu Proiect</label>
-                <input asp-for="Title" class="form-control" placeholder="Ex: Aplicație Web" />
+                <input asp-for="Title" class="form-control" placeholder="Ex: Aplicatie Web" />
                 <span asp-validation-for="Title" class="text-danger"></span>
             </div>
 
@@ -22,8 +22,8 @@
                 <span asp-validation-for="Description" class="text-danger"></span>
             </div>
 
-            <button type="submit" class="btn btn-primary">Salvează Proiectul</button>
-            <a asp-controller="Dashboard" asp-action="Index" class="btn btn-secondary">Anulează</a>
+            <button type="submit" class="btn btn-primary">Salveaza Proiectul</button>
+            <a asp-controller="Dashboard" asp-action="Index" class="btn btn-secondary">Anuleaza</a>
         </form>
     </div>
 </div>
