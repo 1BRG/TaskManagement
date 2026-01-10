@@ -18,6 +18,8 @@ namespace TaskManagement.Data
         public DbSet<ProjectMember> ProjectMembers { get; set; }
         public DbSet<Comment> Comments { get; set; }
         public DbSet<BoardColumn> BoardColumns { get; set; }
+        public DbSet<BoardLabel> BoardLabels { get; set; }
+        public DbSet<TaskImage> TaskImages { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -54,12 +56,18 @@ namespace TaskManagement.Data
                 .HasForeignKey(t => t.AssignedToUserId)
                 .OnDelete(DeleteBehavior.SetNull); // Daca membrul pleaca, task-ul ramane neasignat
 
-             // 5. Relatia BoardColumn - Tasks
+// 5. Relatia BoardColumn - Tasks
              builder.Entity<AppTask>()
                  .HasOne(t => t.BoardColumn)
                  .WithMany(c => c.Tasks)
                  .HasForeignKey(t => t.BoardColumnId)
-                 .OnDelete(DeleteBehavior.Cascade); // Delete column -> delete tasks
+                 .OnDelete(DeleteBehavior.Cascade);
+
+            // 6. Many-to-Many Task <-> Labels
+            builder.Entity<AppTask>()
+                .HasMany(t => t.Labels)
+                .WithMany(l => l.Tasks)
+                .UsingEntity(j => j.ToTable("TaskLabels"));
         }
     }
 }

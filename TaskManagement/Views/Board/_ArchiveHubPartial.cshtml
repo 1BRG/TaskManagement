@@ -1,0 +1,38 @@
+@model List<TaskManagement.Models.AppTask>
+
+@if(Model != null && Model.Any())
+{
+    foreach(var task in Model)
+    {
+        <div class="archive-item">
+            <div class="archive-item-content">
+                <span class="archive-item-title">@task.Title</span>
+                <span class="archive-item-meta">
+                    in <strong>@task.BoardColumn?.Title</strong>
+                    <span class="archive-date" title="@(task.ArchivedDate?.ToString("g"))">
+                        @if(task.ArchivedDate.HasValue)
+                        {
+                            var diff = DateTime.Now - task.ArchivedDate.Value;
+                            if(diff.TotalMinutes < 1) { <text>Just now</text> }
+                            else if(diff.TotalMinutes < 60) { <text>@((int)diff.TotalMinutes)m ago</text> }
+                            else if(diff.TotalHours < 24) { <text>@((int)diff.TotalHours)h ago</text> }
+                            else { <text>@task.ArchivedDate.Value.ToString("MMM dd")</text> }
+                        }
+                    </span>
+                </span>
+            </div>
+            <!-- Restore Button -->
+            <button class="restore-btn" onclick="restoreTask(@task.Id, @(task.BoardColumnId ?? 0))" title="Send to board">
+                <i class="bi bi-arrow-counterclockwise"></i>
+            </button>
+        </div>
+    }
+}
+else
+{
+    <div class="archive-empty" style="padding: 40px; text-align: center; color: #64748b;">
+        <i class="bi bi-archive" style="font-size: 2rem; display: block; margin-bottom: 8px;"></i>
+        <p style="margin: 0;">No archived items found</p>
+    </div>
+}
+
