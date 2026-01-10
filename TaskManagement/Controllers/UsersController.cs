@@ -191,7 +191,7 @@ namespace TaskManagement.Controllers
             await _userManager.UpdateAsync(user);
 
             TempData["Message"] = "Profil actualizat cu succes!";
-            return RedirectToAction("Show", new { id = user.Id });
+            return RedirectToAction("UserProfile", new { id = user.Id });
         }
     }
 }

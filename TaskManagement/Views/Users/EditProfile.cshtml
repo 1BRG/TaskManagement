@@ -39,12 +39,13 @@
                         <div class="mb-4">
                             <label asp-for="PhoneNumber" class="form-label fw-bold">Telefon</label>
                             <input asp-for="PhoneNumber" class="form-control" placeholder="07xx..." />
+                            <span asp-validation-for="PhoneNumber" class="text-danger"></span>
                         </div>
 
                         <button type="submit" class="btn btn-success px-4">
                             <i class="bi bi-check-circle"></i> Salvează Modificările
                         </button>
-                        <a asp-action="Show" asp-route-id="@Model.Id" class="btn btn-link text-secondary">Anulează</a>
+                        <a asp-action="UserProfile" asp-route-id="@Model.Id" class="btn btn-link text-secondary">Anulează</a>
                     </form>
                 </div>
             </div>
