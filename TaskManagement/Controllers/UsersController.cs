@@ -82,8 +82,13 @@ namespace TaskManagement.Controllers
                 Include(p => p.OwnedProjects).
                 Include(p => p.ProjectsJoined.Where(pj => pj.Project.Members.Any(u => u.UserId == currentUser))).
                     ThenInclude(p => p.Project).
-                Include(p => p.AssignedTasks).ThenInclude(t => t.Project)
+                Include(p => p.AssignedTasks.Where(t => !t.IsArchived)).ThenInclude(t => t.Project)
                 .FirstOrDefaultAsync();
+
+            if (user == null)
+            {
+                return NotFound();
+            }
 
 
 

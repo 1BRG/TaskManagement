@@ -1,0 +1,44 @@
+@model TaskManagement.Models.AppTask
+
+<div class="list-card @(Model.IsCompleted ? "checked" : "")" draggable="true" ondragstart="drag(event, @Model.Id)" data-task-id="@Model.Id" id="card-@Model.Id">
+    <div class="card-check-btn @(Model.IsCompleted ? "checked" : "")" onclick="toggleTask(event, @Model.Id)">
+        <i class="bi bi-check" style="pointer-events: none;"></i>
+    </div>
+    
+    <div class="list-card-details">
+        <!-- Labels -->
+        @if(Model.Labels != null && Model.Labels.Any())
+        {
+            <div class="card-labels">
+                @foreach(var label in Model.Labels)
+                {
+                    <span class="card-label" style="background-color: @label.Color;">@label.Name</span>
+                }
+            </div>
+        }
+
+        <span class="list-card-title @(Model.IsCompleted ? "completed-task" : "")" id="title-@Model.Id">@Model.Title</span>
+         
+        <!-- Meta Row: Assignee + Indicators -->
+        <div class="card-meta-row" style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+            <div class="card-indicators">
+                @if(!string.IsNullOrEmpty(Model.Description))
+                {
+                    <i class="bi bi-text-paragraph" title="Has description"></i>
+                }
+                @if(Model.Images != null && Model.Images.Any())
+                {
+                    <i class="bi bi-paperclip" title="Has attachments"></i> <span>@Model.Images.Count</span>
+                }
+            </div>
+
+            <!-- Assignee Avatar -->
+            @if(Model.AssignedToUser != null)
+            {
+                 <div class="assignee-avatar" title="Assigned to @Model.AssignedToUser.UserName">
+                     @Model.AssignedToUser.UserName.Substring(0, 1).ToUpper()
+                 </div>
+            }
+        </div>
+    </div>
+</div>
