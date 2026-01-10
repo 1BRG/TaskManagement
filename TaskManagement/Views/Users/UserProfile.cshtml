@@ -81,7 +81,7 @@
                         <div class="project-description">@proj.Description</div>
                         <div class="project-meta">
                             <small class="text-muted">@((proj.Members?.Count() ?? 0)) membri</small>
-                            <a href="#" class="btn btn-sm btn-outline-primary py-0 px-2">Board</a>
+                            <a asp-controller = "Board" asp-action = "Index" asp-route-id = "@proj.Id" class="btn btn-sm btn-outline-primary py-0 px-2">Board</a>
                         </div>
                     </div>
                 }
