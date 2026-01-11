@@ -1,29 +1,148 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@using Microsoft.AspNetCore.Identity
+@using TaskManagement.Models
+@inject UserManager<ApplicationUser> UserManager
+
 @{
+    var user = await UserManager.GetUserAsync(User);
+    var activePage = ViewContext.RouteData.Values["Controller"]?.ToString();
+    var activeAction = ViewContext.RouteData.Values["Action"]?.ToString();
 }
 
-<aside class="sidebar">
-    <div class="sidebar-section">
-        <h6 class="sidebar-title">Personal Settings</h6>
-        <ul>
-            <li><a asp-page="/Profile">Profile</a></li>
-            <li><a asp-page="/Settings">Settings</a></li>
-            <li><a asp-page="/Activity">Activity</a></li>
-            <li><a asp-page="/Cards">Cards</a></li>
-        </ul>
+<aside class="sidebar-container">
+    <div class="sidebar-header">
+        <i class="bi bi-kanban-fill"></i> TaskManager
     </div>
 
-    <hr />
+    <nav class="sidebar-nav">
+        <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block" style="font-size: 0.75rem;">Meniu Principal</small>
 
-    <div class="sidebar-section">
-        <h6 class="sidebar-title">Workspace</h6>
-        <ul>
-            <li><a asp-page="/Boards">Boards</a></li>
-            <li><a asp-page="/Members">Members</a></li>
-            <li class="active"><a asp-page="/Workspace/Settings">Settings</a></li>
-            <li><a asp-page="/Upgrade">Upgrade workspace</a></li>
-        </ul>
+        <a asp-controller="Dashboard" asp-action="Index" class="nav-item @(activePage == "Dashboard" ? "active" : "")">
+            <i class="bi bi-grid-1x2-fill"></i> Dashboard
+        </a>
+
+        @if (user != null)
+        {
+            <a asp-controller="Users" asp-action="UserProfile" asp-route-id="@user.Id" class="nav-item @(activePage == "Users" && activeAction == "Details" ? "active" : "")">
+                <i class="bi bi-person-badge-fill"></i> Profilul Meu
+            </a>
+        }
+
+        <hr class="my-3 mx-3 opacity-25">
+
+        <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block" style="font-size: 0.75rem;">Workspace</small>
+
+        <a asp-controller="Projects" asp-action="New" class="nav-item @(activePage == "Projects" && activeAction == "Create" ? "active" : "")">
+            <i class="bi bi-plus-square-fill"></i> Proiect Nou
+        </a>
+    </nav>
+
+    <div class="sidebar-footer">
+        @if (user != null)
+        {
+            <div class="d-flex align-items-center mb-3">
+                <div class="avatar-initials me-2">
+                    @user.FirstName?.Substring(0, 1)@user.LastName?.Substring(0, 1)
+                </div>
+                <div class="overflow-hidden">
+                    <div class="fw-bold text-truncate" style="font-size: 0.9rem;">@user.FirstName @user.LastName</div>
+                    <small class="text-muted d-block text-truncate">@user.Email</small>
+                </div>
+            </div>
+            <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+                <button type="submit" class="btn btn-outline-danger btn-sm w-100">
+                    <i class="bi bi-box-arrow-right"></i> Deconectare
+                </button>
+            </form>
+        }
     </div>
 </aside>
+
+
+<style>
+    :root {
+        --sidebar-width: 260px;
+        --primary-color: #4f46e5;
+        --bg-light: #f3f4f6;
+    }
+
+    .app-wrapper {
+        display: flex;
+        min-height: 100vh;
+        background-color: var(--bg-light);
+    }
+
+    /* Sidebar Styling */
+    .sidebar-container {
+        width: var(--sidebar-width);
+        background: #fff;
+        border-right: 1px solid #e5e7eb;
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        height: 100vh;
+        z-index: 100;
+    }
+
+    .sidebar-header {
+        padding: 1.5rem;
+        font-weight: 800;
+        font-size: 1.25rem;
+        color: var(--primary-color);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .sidebar-nav {
+        padding: 1rem;
+        flex-grow: 1;
+    }
+
+    .nav-item {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        color: #4b5563;
+        text-decoration: none;
+        border-radius: 0.5rem;
+        margin-bottom: 0.25rem;
+        transition: all 0.2s;
+        font-weight: 500;
+    }
+
+        .nav-item:hover, .nav-item.active {
+            background-color: #e0e7ff;
+            color: var(--primary-color);
+        }
+
+        .nav-item i {
+            margin-right: 0.75rem;
+            font-size: 1.1rem;
+        }
+
+    .sidebar-footer {
+        padding: 1rem;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    /* Main Content Adjustment */
+    .main-content {
+        margin-left: var(--sidebar-width);
+        flex: 1;
+        padding: 2rem;
+        width: calc(100% - var(--sidebar-width));
+    }
+
+    /* Avatar Group styling */
+    .avatar-initials {
+        width: 38px;
+        height: 38px;
+        background: #e0e7ff;
+        color: var(--primary-color);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }</style>

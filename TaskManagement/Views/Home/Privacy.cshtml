@@ -1,6 +1,198 @@
 ﻿@{
-    ViewData["Title"] = "Privacy Policy";
+    ViewData["Title"] = "Politica de Confidențialitate";
+    // Dacă vrei să ascunzi sidebar-ul pe pagina asta, decomentează linia de mai jos:
+     ViewData["HideNav"] = true;
 }
-<h1>@ViewData["Title"]</h1>
+<style>
+    :root {
+        --privacy-primary: #4f46e5;
+        --privacy-bg: #f8fafc;
+        --privacy-text: #334155;
+        --privacy-heading: #1e293b;
+    }
 
-<p>Use this page to detail your site's privacy policy.</p>
+    body {
+        background-color: var(--privacy-bg);
+        color: var(--privacy-text);
+    }
+
+    /* Header cu gradient */
+    .privacy-header {
+        background: linear-gradient(135deg, black 0%, #4f46e5 100%);
+        color: white;
+        padding: 4rem 0 3rem;
+        border-radius: 0 0 2rem 2rem;
+        margin-bottom: -3rem; /* Suprapunere cu cardul principal */
+    }
+
+    .doc-container {
+        max-width: 900px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 10;
+    }
+
+    .privacy-card {
+        background: white;
+        border-radius: 1rem;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+        padding: 3rem;
+        margin-bottom: 3rem;
+    }
+
+    .section-title {
+        font-weight: 700;
+        color: var(--privacy-heading);
+        margin-top: 2.5rem;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .section-icon {
+        width: 36px;
+        height: 36px;
+        background-color: #e0e7ff;
+        color: var(--privacy-primary);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+    }
+
+    .privacy-list li {
+        margin-bottom: 0.5rem;
+        position: relative;
+        padding-left: 1.5rem;
+    }
+
+    .privacy-list li::before {
+        content: "•";
+        color: var(--privacy-primary);
+        font-weight: bold;
+        position: absolute;
+        left: 0;
+    }
+
+    .last-updated {
+        display: inline-block;
+        background: rgba(255, 255, 255, 0.2);
+        padding: 0.25rem 1rem;
+        border-radius: 2rem;
+        font-size: 0.85rem;
+        backdrop-filter: blur(5px);
+    }
+
+    /* Responsive adjustments */
+
+</style>
+
+
+<!-- HEADER SECTION -->
+<div class="privacy-header text-center">
+    <div class="container">
+        <span class="last-updated mb-3">Ultima actualizare: @DateTime.Now.ToString("dd MMMM yyyy")</span>
+        <h1 class="fw-bold mb-2">Politica de Confidențialitate</h1>
+        <p class="opacity-75 lead" style="max-width: 600px; margin: 0 auto;">
+            Transparența este esențială pentru noi. Află cum colectăm, folosim și protejăm datele tale în cadrul platformei noastre.
+        </p>
+    </div>
+</div>
+
+<!-- CONTENT SECTION -->
+<div class="container doc-container">
+    <div class="privacy-card">
+
+        <p class="lead text-muted border-bottom pb-4">
+            Bine ai venit pe platforma noastră de <strong>Task Management</strong>. Confidențialitatea datelor tale este o prioritate pentru noi. Acest document detaliază modul în care gestionăm informațiile personale.
+        </p>
+
+        <!-- 1. Informații Colectate -->
+        <h4 class="section-title">
+            <div class="section-icon"><i class="bi bi-person-vcard"></i></div>
+            1. Informațiile pe care le colectăm
+        </h4>
+        <p>Pentru a oferi funcționalitățile platformei (managementul proiectelor și al task-urilor), colectăm următoarele tipuri de date:</p>
+        <ul class="list-unstyled privacy-list text-muted">
+            <li><strong>Informații de Cont:</strong> Nume, prenume și adresa de email (utilizate pentru autentificare și identificare în echipă).</li>
+            <li><strong>Conținut Generat:</strong> Titluri de proiecte, descrieri, comentarii și fișiere media (imagini/documente) încărcate la task-uri.</li>
+            <li><strong>Date Tehnice:</strong> Adresa IP, tipul browser-ului și log-uri de acces pentru securitate.</li>
+        </ul>
+
+        <!-- 2. Utilizarea Datelor -->
+        <h4 class="section-title">
+            <div class="section-icon"><i class="bi bi-hdd-network"></i></div>
+            2. Cum folosim datele tale
+        </h4>
+        <p>Datele colectate sunt utilizate exclusiv pentru buna funcționare a aplicației:</p>
+        <ul class="list-unstyled privacy-list text-muted">
+            <li>Pentru a-ți permite crearea și gestionarea contului.</li>
+            <li>Pentru a facilita colaborarea în timp real cu alți membri ai echipei.</li>
+            <li>Pentru a trimite notificări legate de modificările proiectelor sau task-urilor asignate.</li>
+            <li>Pentru a preveni activități frauduloase și a asigura securitatea platformei.</li>
+        </ul>
+
+        <!-- 3. Stocare și Securitate -->
+        <h4 class="section-title">
+            <div class="section-icon"><i class="bi bi-shield-lock"></i></div>
+            3. Securitatea Datelor
+        </h4>
+        <p>
+            Luăm măsuri serioase pentru a proteja datele tale. Parolele sunt stocate sub formă de hash-uri criptate (nu sunt salvate în text clar).
+            Accesul la baza de date este restricționat, iar conexiunile sunt securizate prin protocolul SSL/HTTPS.
+        </p>
+
+        <!-- 4. Partajarea Datelor -->
+        <h4 class="section-title">
+            <div class="section-icon"><i class="bi bi-share"></i></div>
+            4. Partajarea informațiilor
+        </h4>
+        <p>
+            <strong>Nu vindem</strong> datele tale personale către terți. Informațiile tale sunt vizibile doar:
+        </p>
+        <ul class="list-unstyled privacy-list text-muted">
+            <li>Membrilor din echipele/proiectele în care ai fost invitat.</li>
+            <li>Administratorilor de sistem pentru mentenanță (acces strict controlat).</li>
+        </ul>
+
+        <!-- 5. Drepturile Tale -->
+        <h4 class="section-title">
+            <div class="section-icon"><i class="bi bi-check2-circle"></i></div>
+            5. Drepturile Tale (GDPR)
+        </h4>
+        <p>Conform legislației în vigoare, ai următoarele drepturi:</p>
+        <div class="row g-3 mt-2">
+            <div class="col-md-6">
+                <div class="p-3 bg-light rounded border">
+                    <h6 class="fw-bold"><i class="bi bi-eye me-2"></i>Dreptul de Acces</h6>
+                    <small class="text-muted">Poți solicita o copie a datelor pe care le deținem despre tine.</small>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="p-3 bg-light rounded border">
+                    <h6 class="fw-bold"><i class="bi bi-trash3 me-2"></i>Dreptul la Ștergere</h6>
+                    <small class="text-muted">Poți solicita ștergerea contului și a datelor asociate ("Dreptul de a fi uitat").</small>
+                </div>
+            </div>
+        </div>
+
+        <hr class="my-5">
+
+        <!-- CONTACT -->
+        <div class="text-center">
+            <h5 class="fw-bold mb-3">Ai întrebări?</h5>
+            <p class="text-muted mb-4">Dacă ai nelămuriri cu privire la această politică, ne poți contacta oricând.</p>
+            <a href="mailto:support@taskmanager.local" class="btn btn-outline-primary px-4 rounded-pill">
+                <i class="bi bi-envelope me-2"></i>Contactează Echipa
+            </a>
+        </div>
+
+    </div>
+
+    <div class="text-center pb-5">
+        <small class="text-muted">&copy; @DateTime.Now.Year Task Management App. Toate drepturile rezervate.</small>
+    </div>
+</div>

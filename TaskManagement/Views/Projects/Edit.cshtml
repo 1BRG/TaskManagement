@@ -2,249 +2,209 @@
 @inject UserManager<ApplicationUser> _userManager
 @model TaskManagement.Models.Project
 
-
 @{
-    ViewData["Title"] = "Editare Proiect";
-    ViewData["HideNav"] = true;   // <- adauga asta pentru a ascunde navbar-ul
-    // Use the default _Layout (do not set Layout = null) so CSS and shared assets remain loaded.
+    ViewData["Title"] = "Setări Proiect";
+    ViewData["HideNav"] = true;
 }
-<div class="app-container">
+
+<div class="app-wrapper">
+    <!-- Includem Sidebar-ul -->
     @await Html.PartialAsync("_Sidebar")
-    
-    <main class="content">
-        <!--<partial name="_Alert" />-->
+
+    <main class="main-content">
+        <!-- Breadcrumb navigație -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-1">
+                        <li class="breadcrumb-item"><a asp-controller="Dashboard" asp-action="Index" class="text-decoration-none">Dashboard</a></li>
+                        <li class="breadcrumb-item"><a asp-controller="Board" asp-action="Index" asp-route-id="@Model.Id" class="text-decoration-none">@Model.Title</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Setări</li>
+                    </ol>
+                </nav>
+                <h2 class="fw-bold mb-0">Setări Proiect</h2>
+            </div>
+            <a asp-controller="Board" asp-action="Index" asp-route-id="@Model.Id" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Înapoi la Board
+            </a>
+        </div>
+
         @await Html.PartialAsync("_Alert")
 
-        <div class="row">
-            
-            <div class="col-md-8">
+        <div class="row g-4">
+            <!-- COLOANA STÂNGA: Formular Editare -->
+            <div class="col-lg-7">
+                <div class="card border-0 shadow-sm rounded-3 mb-4">
+                    <div class="card-header bg-white py-3 border-bottom-0">
+                        <h5 class="card-title fw-bold mb-0">Informații Generale</h5>
+                    </div>
+                    <div class="card-body">
+                        <form asp-action="Edit" method="post">
+                            <input type="hidden" asp-for="Id" />
 
-                <!-- FORMULARUL 1: EDITARE PROIECT -->
-                <form asp-action="Edit" method="post" class="mb-5 border p-3 rounded">
-                    <h4 class="mb-3">Detalii Proiect</h4>
-                    <input type="hidden" asp-for="Id" />
+                            <div class="form-floating mb-3">
+                                <input asp-for="Title" class="form-control" placeholder="Titlu" />
+                                <label asp-for="Title">Nume Proiect</label>
+                                <span asp-validation-for="Title" class="text-danger small"></span>
+                            </div>
 
-                    <div class="form-group mb-3">
-                        <label asp-for="Title" class="control-label">Titlu Proiect</label>
-                        
-                        <input asp-for="Title" class="form-control" />
-                        <span asp-validation-for="Title" class="text-danger"></span>
+                            <div class="form-floating mb-4">
+                                <textarea asp-for="Description" class="form-control" placeholder="Descriere" style="height: 120px"></textarea>
+                                <label asp-for="Description">Descriere (opțional)</label>
+                                <span asp-validation-for="Description" class="text-danger small"></span>
+                            </div>
+
+                            <div class="d-flex justify-content-end">
+                                <button type="submit" class="btn btn-primary px-4">
+                                    <i class="bi bi-save me-2"></i>Salvează Modificările
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Danger Zone -->
+                @{
+                    var currentUserId = _userManager.GetUserId(User);
+                    var canDelete = User.IsInRole("Admin") || currentUserId == Model.OrganizerId;
+                }
+                @if (canDelete)
+                {
+                    <div class="card border border-danger border-opacity-25 shadow-sm rounded-3 bg-danger bg-opacity-10">
+                        <div class="card-body d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-danger fw-bold mb-1">Șterge Proiectul</h6>
+                                <p class="text-danger text-opacity-75 small mb-0">Această acțiune este ireversibilă. Toate task-urile vor fi pierdute.</p>
+                            </div>
+                            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteProjectModal">
+                                Șterge Definitiv
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- COLOANA DREAPTA: Management Membri -->
+            <div class="col-lg-5">
+                <div class="card border-0 shadow-sm rounded-3">
+                    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                        <h5 class="card-title fw-bold mb-0">Echipa</h5>
+                        <button class="btn btn-sm btn-primary rounded-pill px-3" onclick="toggleAddMember()">
+                            <i class="bi bi-person-plus-fill me-1"></i> Adaugă
+                        </button>
                     </div>
 
-                    <div class="form-group mb-3">
-                        <label asp-for="Description" class="control-label">Descriere</label>
-                        <textarea asp-for="Description" class="form-control" rows="4"></textarea>
-                        <span asp-validation-for="Description" class="text-danger"></span>
+                    <!-- Formular Adăugare (Ascuns default) -->
+                    <div class="card-body bg-light border-bottom" id="addMemberForm" style="display:none">
+                        <form asp-controller="Projects" asp-action="AddMember" method="post">
+                            <input type="hidden" name="projectId" value="@Model.Id" />
+                            <label class="form-label small fw-bold text-muted">Adaugă membru prin email</label>
+                            <div class="input-group">
+                                <input type="email" name="email" class="form-control" placeholder="user@example.com" required />
+                                <button type="submit" class="btn btn-dark">Invită</button>
+                            </div>
+                        </form>
                     </div>
 
-                    <button type="submit" class="btn btn-warning">Salveaza Proiectul</button>
-                    <a asp-controller="Dashboard" asp-action="Index" class="btn btn-secondary">Anuleaza</a>
-                </form>
-
-                <!-- SECTIUNEA MEMBRILOR (In afara form-ului de editare) -->
-                <div class="card mt-4">
-                    <div class="card-header">
-                        Membrii Echipei
-                    </div>
                     <div class="list-group list-group-flush">
                         @if (ViewBag.Members != null)
                         {
                             @foreach (var userProject in ViewBag.Members)
                             {
-                                // Cautam userul
                                 var member = await _userManager.FindByIdAsync(userProject.UserId.ToString());
-
-                                // VERIFICARE CRITICa: Afisam doar daca userul exista
                                 if (member != null)
                                 {
-                                    <div class="list-group-item d-flex align-items-center position-relative py-2">
-                                    <a asp-controller="Users" asp-action="Profile" asp-route-id="@userProject.UserId"
-                                           class="d-flex align-items-center text-decoration-none text-reset flex-grow-1 me-4">
-
-                                        <div class="me-3 rounded-circle bg-secondary text-white d-inline-flex justify-content-center align-items-center" style="width: 40px; height: 40px;">
-                                            <!-- Folosim operatorul ? pentru siguranta -->
-                                            @(member.FirstName?.Substring(0, 1).ToUpper() ?? "U")
-                                        </div>
-
-                                        <div>
-                                            <div class="fw-semibold">
-                                                @member.FirstName @member.LastName
+                                    <div class="list-group-item py-3 px-4 d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-initials me-3 bg-light text-dark border">
+                                                @(member.FirstName?.Substring(0, 1).ToUpper() ?? "U")
                                             </div>
-                                            <small class="text-muted">@member.Email</small>
+                                            <div>
+                                                <div class="fw-semibold text-dark">@member.FirstName @member.LastName</div>
+                                                <div class="small text-muted">@member.Email</div>
+                                            </div>
                                         </div>
-                                    </a>
 
                                         @if (member.Id != Model.OrganizerId)
                                         {
-                                           <div class="delete-btn-wrapper">
-                                            <!-- Buton care deschide modal (recomandat) -->
-                                                <button type="button"
-                                                        class="btn btn-sm btn-trash-circle"
-                                                        data-bs-toggle="modal"
-                                                        data-bs-target="#confirmRemoveModal-@member.Id"
-                                                        aria-label="sterge @member.FirstName @member.LastName"
-                                                        title="sterge membru">
-                                                    X
-                                                </button>
-                                            </div>
+                                            <button type="button" class="btn btn-link text-danger p-0 opacity-50 hover-opacity-100"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#confirmRemoveModal-@member.Id"
+                                                    title="Scoate din echipă">
+                                                <i class="bi bi-x-circle-fill fs-5"></i>
+                                            </button>
 
-                                             <!-- Modal per-member -->
+                                            <!-- Modal Confirmare Ștergere Membru -->
                                             <div class="modal fade" id="confirmRemoveModal-@member.Id" tabindex="-1" aria-hidden="true">
-                                              <div class="modal-dialog modal-sm modal-dialog-centered">
-                                                <div class="modal-content">
-                                                  <div class="modal-header">
-                                                    <h5 class="modal-title">Confirmare stergere</h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Închide"></button>
-                                                  </div>
-                                                  <div class="modal-body">
-                                                    Esti sigur ca doresti sa stergi membrul <strong>@member.FirstName @member.LastName</strong> din proiect?
-                                                  </div>
-                                                  <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Anuleaza</button>
-
-                                                    <form asp-controller="Projects" asp-action="RemoveMember" method="post" class="d-inline">
-                                                        <input type="hidden" name="projectId" value="@Model.Id" />
-                                                        <input type="hidden" name="removedUserId" value="@member.Id" />
-                                                        <button type="submit" class="btn btn-danger btn-sm">sterge</button>
-                                                    </form>
-                                                  </div>
+                                                <div class="modal-dialog modal-sm modal-dialog-centered">
+                                                    <div class="modal-content">
+                                                        <div class="modal-body text-center p-4">
+                                                            <i class="bi bi-exclamation-circle text-warning display-4 mb-3"></i>
+                                                            <p class="mb-4">Ești sigur că vrei să elimini utilizatorul <strong>@member.FirstName</strong> din proiect?</p>
+                                                            <div class="d-flex gap-2 justify-content-center">
+                                                                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Anulează</button>
+                                                                <form asp-controller="Projects" asp-action="RemoveMember" method="post">
+                                                                    <input type="hidden" name="projectId" value="@Model.Id" />
+                                                                    <input type="hidden" name="removedUserId" value="@member.Id" />
+                                                                    <button type="submit" class="btn btn-danger">Elimină</button>
+                                                                </form>
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                              </div>
                                             </div>
-                                            
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill">Owner</span>
                                         }
                                     </div>
                                 }
                             }
                         }
                     </div>
-
-                    <div class="card-body">
-                        <button class="btn btn-sm btn-success" onclick="toggleAddMember()">
-                            + Adauga Membru
-                        </button>
-
-                        <!-- FORMULARUL 2: ADAUGARE MEMBRU (Separat de primul) -->
-                        <form asp-controller="Projects"
-                              asp-action="AddMember"
-                              method="post"
-                              class="mt-3"
-                              id="addMemberForm"
-                              style="display:none">
-
-                            <input type="hidden" name="projectId" value="@Model.Id" />
-
-                            <div class="input-group">
-                                <input type="email"
-                                       name="email"
-                                       class="form-control"
-                                       placeholder="Email utilizator"
-                                       required />
-
-                                <button type="submit" class="btn btn-primary">
-                                    Adauga
-                                </button>
-                            </div>
-                        </form>
-
-                    </div>
-
                 </div>
-
-                @{
-                    var currentUserId = _userManager.GetUserId(User);
-                    var canDelete = User.IsInRole("Admin") || currentUserId == Model.OrganizerId;
-                }
-
-                @if (canDelete)
-                {
-                    <div class="mt-3">
-                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteProjectModal">
-                            Șterge proiectul
-                        </button>
-                    </div>
-
-                    <!-- Modal confirmare stergere proiect -->
-                    <div class="modal fade" id="confirmDeleteProjectModal" tabindex="-1" aria-labelledby="confirmDeleteProjectLabel" aria-hidden="true">
-                        <div class="modal-dialog modal-dialog-centered">
-                            <div class="modal-content text-dark">
-                                <div class="modal-header">
-                                    <h5 class="modal-title" id="confirmDeleteProjectLabel">Confirmare ștergere proiect</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Închide"></button>
-                                </div>
-                                <div class="modal-body">
-                                    Ești sigur(ă) că vrei să ștergi proiectul <strong>@Model.Title</strong>? Această acțiune va șterge membrii, coloanele și task-urile asociate.
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Anulează</button>
-
-                                    <form asp-controller="Projects" asp-action="Delete" method="post" class="d-inline">
-                                        @Html.AntiForgeryToken()
-                                        <input type="hidden" name="projectId" value="@Model.Id" />
-                                        <button type="submit" class="btn btn-danger btn-sm" id="confirmDeleteBtn">
-                                            Șterge definitiv
-                                        </button>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                }
-
-                
             </div>
-
         </div>
     </main>
+</div>
+
+<!-- Modal Confirmare Ștergere Proiect -->
+<div class="modal fade" id="confirmDeleteProjectModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center pb-5">
+                <div class="text-danger mb-3">
+                    <i class="bi bi-trash3-fill display-3"></i>
+                </div>
+                <h4 class="fw-bold">Ștergi Proiectul?</h4>
+                <p class="text-muted mb-4">
+                    Ești pe cale să ștergi <strong>@Model.Title</strong>.<br>
+                    Toate task-urile, comentariile și fișierele vor fi șterse permanent.
+                </p>
+
+                <form asp-controller="Projects" asp-action="Delete" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="projectId" value="@Model.Id" />
+                    <button type="submit" class="btn btn-danger w-100 py-2 fw-bold">Da, Șterge Proiectul</button>
+                </form>
+                <button type="button" class="btn btn-link text-muted mt-2 text-decoration-none" data-bs-dismiss="modal">Nu, M-am răzgândit</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
     function toggleAddMember() {
         const form = document.getElementById("addMemberForm");
-        form.style.display = form.style.display === "none" ? "block" : "none";
+        if(form.style.display === "none") {
+            form.style.display = "block";
+            form.querySelector('input').focus();
+        } else {
+            form.style.display = "none";
+        }
     }
 </script>
-
- <style>
-    /* Wrapper pozitionare pentru butonul de delete */
-    .list-group-item {
-        position: relative;
-    }
-
-    /* Buton circular, vizibil pe orice fundal */
-    .btn-trash-circle {
-        width: 36px;
-        height: 36px;
-        padding: 0;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 50%;
-        background-color: #dc3545; /* bootstrap danger */
-        color: #fff;
-        border: none;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-        transition: transform .12s ease, box-shadow .12s ease;
-    }
-
-    /* pozitionare în dreapta (asigura ca nu suprapune link-ul) */
-    .delete-btn-wrapper {
-        position: absolute;
-        right: 12px;
-        top: 50%;
-        transform: translateY(-50%);
-    }
-
-    /* hover/focus effects */
-    .btn-trash-circle:hover,
-    .btn-trash-circle:focus {
-        transform: translateY(-2px) scale(1.03);
-        box-shadow: 0 6px 14px rgba(0,0,0,0.12);
-        outline: none;
-    }
-
-    /* evitam modificari de padding/height la hover pe lista principala */
-    .list-group-item:hover { /* pastram layoutul stabil */
-        background-color: #f8f9fa; /* optional, nu schimbam padding/height */
-    }
- </style>

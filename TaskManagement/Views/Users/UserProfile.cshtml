@@ -1,309 +1,400 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model TaskManagement.Models.UserProfileViewModel
 @{
+    ViewData["Title"] = "Profil Utilizator";
+   
 }
-@model TaskManagement.Models.UserProfileViewModel
 
-<div class="container mt-5">
-    <div class="row">
-        <!-- Coloana Stanga: Informatii User -->
-        <div class="col-md-4">
-            <div class="card shadow-sm border-0">
-                <div class="card-body text-center">
-                    <div class="mb-3">
-                        <!-- Avatar Mare -->
-                        <div class="bg-dark text-white rounded-circle d-inline-flex justify-content-center align-items-center display-4 shadow" style="width: 120px; height: 120px;">
-                            @Model.FirstName[0]@Model.LastName[0]
-                        </div>
+
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1050"></div>
+
+<div class="container py-5">
+    <div class="row g-4">
+
+        <div class="col-lg-4 mb-4">
+            <!-- Am adaugat clasa 'sticky-sidebar' și am scos 'h-100' -->
+            <div class="card border-0 shadow-sm rounded-4 bg-white sticky-sidebar">
+                <div class="card-body p-4 text-center">
+                    <!-- Avatar -->
+                    <div class="avatar-circle mb-3">
+                        @Model.FirstName[0]@Model.LastName[0]
                     </div>
-                    <h4>@Model.FullName</h4>
-                    <p class="text-muted">@Model.Email</p>
-                    
+
+                    <!-- Nume și Email -->
+                    <h4 class="fw-bold mb-1">@Model.FullName</h4>
+                    <p class="text-muted small mb-4">@Model.Email</p>
+
+                    <!-- Rol -->
                     @if (Model.Role == "Admin")
                     {
-                        <span class="badge bg-danger mb-3">Administrator</span>
+                        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-10 px-3 py-2 rounded-pill mb-4">Administrator</span>
                     }
                     else
                     {
-                        <span class="badge bg-secondary mb-3">Membru Echipa</span>
+                        <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-10 px-3 py-2 rounded-pill mb-4">Membru Echipa</span>
                     }
 
-                    <div class="d-flex justify-content-around mt-3 border-top pt-3">
-                        <div>
-                            <h5>@Model.ProjectsCount</h5>
-                            <small class="text-muted">Proiecte</small>
+                    <!-- Statistici -->
+                    <div class="row g-2 mb-4">
+                        <div class="col-6">
+                            <div class="stat-box">
+                                <h3 class="fw-bold mb-0 text-dark">@Model.ProjectsCount</h3>
+                                <small class="text-muted text-uppercase fw-bold" style="font-size: 0.7rem;">Proiecte</small>
+                            </div>
                         </div>
-                        <div>
-                            <h5>@Model.TasksCount</h5>
-                            <small class="text-muted">Task-uri</small>
+                        <div class="col-6">
+                            <div class="stat-box">
+                                <h3 class="fw-bold mb-0 text-dark">@Model.TasksCount</h3>
+                                <small class="text-muted text-uppercase fw-bold" style="font-size: 0.7rem;">Task-uri</small>
+                            </div>
                         </div>
                     </div>
 
+                    <!-- Buton Editare -->
                     @if (Model.IsOwnerOrAdmin)
                     {
-                        <div class="mt-4">
-                            <a asp-controller="Users" asp-action="EditProfile" asp-route-id="@Model.Id" class="btn btn-outline-dark w-100">
-                                <i class="bi bi-pencil-square"></i> Editează Profil
-                            </a>
-                        </div>
+                        <a asp-controller="Users" asp-action="EditProfile" asp-route-id="@Model.Id" class="btn btn-dark w-100 py-2 rounded-3">
+                            <i class="bi bi-pencil-square me-2"></i>Editează Profil
+                        </a>
                     }
                 </div>
             </div>
         </div>
 
-        <!-- Coloana Dreapta: Activitate (Tabs) -->
-        <div class="col-md-8">
-    <div class="card shadow-sm border-0">
-        <div class="card-header bg-white">
-            <ul class="nav nav-tabs card-header-tabs text-color" id="profileTabs" role="tablist">
-                <li class="nav-item">
-                    <button class="nav-link active" id="projects-tab" data-bs-toggle="tab" data-bs-target="#projects" type="button"><p class = "text-black">Proiecte Active</p></button>
-                </li>
-                <li class="nav-item">
-                            <button class="nav-link text-black" id="tasks-tab" data-bs-toggle="tab" data-bs-target="#tasks" type="button"><p class="text-black">Task-uri Asignate</p></button>
-                </li>
-            </ul>
-        </div>
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4 bg-white h-100">
+                <div class="card-body p-4">
+                    <ul class="nav nav-tabs nav-tabs-modern" id="profileTabs" role="tablist">
+                        <li class="nav-item">
+                            <button class="nav-link active" id="projects-tab" data-bs-toggle="tab" data-bs-target="#projects" type="button">
+                                <i class="bi bi-grid-fill me-2"></i>Proiecte
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" id="tasks-tab" data-bs-toggle="tab" data-bs-target="#tasks" type="button">
+                                <i class="bi bi-check2-square me-2"></i>Task-uri
+                            </button>
+                        </li>
+                    </ul>
 
-        <div class="card-body">
-            <div class="tab-content" id="profileTabsContent">
+                    <div class="tab-content" id="profileTabsContent">
 
-    <!-- PROIECTE -->
-    <div class="tab-pane fade show active" id="projects" role="tabpanel">
-        @if (Model.Projects.Any())
-        {
-            <div class="scroll-area">
-                @foreach (var proj in Model.Projects.OrderBy(p => p.Title))
-                {
-                    <div class="project-item mb-2">
-                        <div class="project-title">@proj.Title</div>
-                        <div class="project-description">@proj.Description</div>
-                        <div class="project-meta">
-                            <small class="text-muted">@((proj.Members?.Count() ?? 0)) membri</small>
-                            <a asp-controller = "Board" asp-action = "Index" asp-route-id = "@proj.Id" class="btn btn-sm btn-outline-primary py-0 px-2">Board</a>
+                        <div class="tab-pane fade show active" id="projects" role="tabpanel">
+                            <div class="search-wrapper mb-4">
+                                <i class="bi bi-search"></i>
+                                <input type="text" id="projectSearch" class="form-control search-input" placeholder="Caută proiecte...">
+                            </div>
+
+                            <div class="scroll-container">
+                                @if (Model.Projects.Any())
+                                {
+                                    <div class="row g-3" id="projectsContainer">
+                                        @foreach (var proj in Model.Projects.OrderBy(p => p.Title))
+                                        {
+                                            var total = proj.Tasks?.Count ?? 0;
+                                            var done = proj.Tasks?.Count(t => t.IsCompleted) ?? 0;
+                                            var percent = total > 0 ? (int)((double)done / total * 100) : 0;
+
+                                            <div class="col-12 col-xl-6 project-item-col">
+                                                <div class="project-card p-3 position-relative">
+                                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                                        <h6 class="fw-bold text-truncate mb-0" style="max-width: 80%;" title="@proj.Title">@proj.Title</h6>
+                                                        <a asp-controller="Board" asp-action="Index" asp-route-id="@proj.Id" class="stretched-link text-primary opacity-50 hover-opacity-100">
+                                                            <i class="bi bi-arrow-right-circle-fill fs-5"></i>
+                                                        </a>
+                                                    </div>
+
+                                                    <p class="text-muted small flex-grow-1 mb-3" style="line-height: 1.4; min-height: 2.8em;">
+                                                        @(proj.Description?.Length > 70 ? proj.Description.Substring(0, 70) + "..." : proj.Description ?? "Fără descriere")
+                                                    </p>
+
+                                                    <div class="mt-auto">
+                                                        <div class="d-flex justify-content-between small text-muted mb-1">
+                                                            <span>Progres</span>
+                                                            <span class="fw-bold text-dark">@percent%</span>
+                                                        </div>
+                                                        <div class="progress" style="height: 6px; background-color: #f1f5f9;">
+                                                            <div class="progress-bar bg-primary" role="progressbar" style="width: @percent%; border-radius: 4px;"></div>
+                                                        </div>
+                                                        <div class="d-flex align-items-center mt-3 pt-2 border-top border-light text-muted small">
+                                                            <span class="me-3"><i class="bi bi-people me-1"></i> @((proj.Members?.Count() ?? 0))</span>
+                                                            <span><i class="bi bi-list-check me-1"></i> @total</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                    <div id="noProjectsFound" class="text-center text-muted mt-5 d-none">
+                                        <p>Niciun proiect găsit.</p>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="text-center py-5 opacity-50">
+                                        <i class="bi bi-folder-x display-4"></i>
+                                        <p class="mt-2">Nu există proiecte active.</p>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="tab-pane fade" id="tasks" role="tabpanel">
+                            @if (Model.Tasks != null && Model.Tasks.Any())
+                            {
+                                var tasksSorted = Model.Tasks.OrderBy(t => t.IsCompleted).ThenBy(t => t.EndDate).ToList();
+                                var incomplete = tasksSorted.Where(t => !t.IsCompleted).ToList();
+                                var complete = tasksSorted.Where(t => t.IsCompleted).ToList();
+
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h6 class="fw-bold mb-0">Activitate</h6>
+                                    <select id="taskFilterProject" class="form-select form-select-sm w-auto border-secondary-subtle">
+                                        <option value="all">Toate Proiectele</option>
+                                        @foreach (var p in Model.Tasks.Select(t => t.Project).DistinctBy(x => x.Id))
+                                        {
+                                            <option value="@p.Id">@p.Title</option>
+                                        }
+                                    </select>
+                                </div>
+
+                                <div id="antiForgeryToken">@Html.AntiForgeryToken()</div>
+
+                                <div class="row g-4 h-100">
+                                    <div class="col-md-6 d-flex flex-column">
+                                        <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                                            <span class="fw-bold text-primary"><i class="bi bi-hourglass-split me-2"></i>În Lucru</span>
+                                            <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill" id="count-incomplete">@incomplete.Count()</span>
+                                        </div>
+
+                                        <div id="incompleteList" class="scroll-container">
+                                            @foreach (var task in incomplete)
+                                            {
+                                                var isOverdue = task.EndDate < DateTime.Now;
+                                                var isUrgent = !isOverdue && task.EndDate < DateTime.Now.AddDays(2);
+
+                                                var borderClass = isOverdue ? "border-l-danger" : (isUrgent ? "border-l-warning" : "border-l-primary");
+                                                var dateClass = isOverdue ? "text-danger fw-bold" : (isUrgent ? "text-warning fw-bold" : "text-muted");
+
+                                                <div class="task-card @borderClass task-row" data-task-id="@task.Id" data-project-id="@task.Project?.Id" data-completed="false">
+                                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                                        <div>
+                                                            <div class="badge-soft d-inline-block mb-1">@task.Project?.Title</div>
+                                                            <h6 class="fw-semibold mb-0 text-dark">@task.Title</h6>
+                                                        </div>
+                                                        <button class="btn btn-sm btn-icon btn-outline-success border-0 rounded-circle js-toggle" data-id="@task.Id" data-completed="false" title="Finalizează">
+                                                            <i class="bi bi-circle fs-5"></i>
+                                                        </button>
+                                                    </div>
+
+                                                    @if (task.Labels != null && task.Labels.Any())
+                                                    {
+                                                        <div class="mb-2">
+                                                            @foreach (var lbl in task.Labels)
+                                                            {
+                                                                <span class="badge rounded-pill me-1 text-white border border-white" style="background-color: @lbl.Color; font-size: 0.6rem;">@lbl.Name</span>
+                                                            }
+                                                        </div>
+                                                    }
+
+                                                    <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top border-light">
+                                                        <small class="@dateClass">
+                                                            <i class="bi bi-calendar-event me-1"></i> @task.EndDate.ToString("dd MMM")
+                                                        </small>
+                                                        <a data-bs-toggle="collapse" href="#taskCollapse_@task.Id" class="text-decoration-none text-muted small">
+                                                            Detalii <i class="bi bi-chevron-down ms-1"></i>
+                                                        </a>
+                                                    </div>
+                                                    <div class="collapse mt-2" id="taskCollapse_@task.Id">
+                                                        <div class="bg-light p-2 rounded small text-muted">
+                                                            @Html.Raw(Html.Encode(task.Description).Replace("\n", "<br/>"))
+                                                            @if (!string.IsNullOrEmpty(task.MediaUrl))
+                                                            {
+                                                                <div class="mt-1"><i class="bi bi-paperclip me-1"></i>Atașament prezent</div>
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6 d-flex flex-column">
+                                        <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                                            <span class="fw-bold text-success"><i class="bi bi-check-circle me-2"></i>Finalizate</span>
+                                            <span class="badge bg-success bg-opacity-10 text-success rounded-pill" id="count-complete">@complete.Count()</span>
+                                        </div>
+
+                                        <div id="completedList" class="scroll-container">
+                                            @foreach (var task in complete)
+                                            {
+                                                <div class="task-card border-l-success task-row bg-light opacity-75" data-task-id="@task.Id" data-project-id="@task.Project?.Id" data-completed="true">
+                                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                                        <div>
+                                                            <div class="badge-soft d-inline-block mb-1 bg-white">@task.Project?.Title</div>
+                                                            <h6 class="fw-semibold mb-0 text-muted text-decoration-line-through">@task.Title</h6>
+                                                        </div>
+                                                        <button class="btn btn-sm btn-icon btn-outline-warning border-0 rounded-circle js-toggle" data-id="@task.Id" data-completed="true" title="Redeschide">
+                                                            <i class="bi bi-arrow-counterclockwise fs-5"></i>
+                                                        </button>
+                                                    </div>
+                                                    <div class="mt-2 text-muted small">
+                                                        <i class="bi bi-check2-all me-1"></i> Finalizat: @task.EndDate.ToString("dd MMM")
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="text-center py-5 opacity-50">
+                                    <i class="bi bi-clipboard-check display-4"></i>
+                                    <p class="mt-2">Nu ai niciun task asignat.</p>
+                                </div>
+                            }
                         </div>
                     </div>
-                }
+                </div>
             </div>
-        }
-        else
-        {
-            <p class="text-muted">Utilizatorul nu are proiecte active.</p>
-        }
+        </div>
     </div>
+</div>
 
-
-    <!-- TASK-URI -->
-    <div class="tab-pane fade" id="tasks" role="tabpanel">
-    @if (Model.Tasks != null && Model.Tasks.Any())
-    {
-        
-            var tasksSorted = Model.Tasks.OrderBy(t => t.IsCompleted).ThenBy(t => t.Order).ToList();
-            var incomplete = tasksSorted.Where(t => !t.IsCompleted).ToList();
-            var complete = tasksSorted.Where(t => t.IsCompleted).ToList();
-        
-
-        <!-- token antiforgery (va fi citit în JS) -->
-        <div id="antiForgeryToken">
-            @Html.AntiForgeryToken()
-        </div>
-
-        <div class="row">
-            <!-- IN LUCRU -->
-            <div class="col-md-6">
-                <h6 class="mb-3">În lucru (@incomplete.Count())</h6>
-                <div id="incompleteList" class="list-group scroll-area">
-                    @foreach (var task in incomplete)
-                    {
-                        var id = task.Id;
-                        var collapseId = $"taskCollapse_{id}";
-                        <div class="list-group-item mb-2 p-0 task-row" data-task-id="@id" data-completed="false">
-                            <div class="d-flex align-items-center justify-content-between p-3">
-                                <div>
-                                    <div class="fw-semibold">@task.Title</div>
-                                    <div class="small text-muted">@task.Project?.Title</div>
-                                </div>
-
-                                <div class="d-flex align-items-center">
-                                    <button class="btn btn-sm btn-outline-secondary me-2" data-bs-toggle="collapse" data-bs-target="#@collapseId" aria-expanded="false">Detalii</button>
-
-                                    <button class="btn btn-sm btn-warning js-toggle" data-id="@id" data-completed="false">Marchează finalizat</button>
-                                </div>
-                            </div>
-
-                            <div class="collapse" id="@collapseId">
-                                <div class="card card-body p-3">
-                                    <div class="mb-2"><small class="text-muted">Perioadă</small><div class="small">@task.StartDate.ToString("dd MMM yyyy") - @task.EndDate.ToString("dd MMM yyyy")</div></div>
-                                    <!-- Priority Removed -->
-                                    <div class="mb-2"><small class="text-muted">Status</small><div class="small">@task.Status</div></div>
-                                    <div class="mb-2"><small class="text-muted">Descriere</small><div class="small">@Html.Raw(Html.Encode(task.Description).Replace("\n","<br/>"))</div></div>
-
-                                    @if (!string.IsNullOrEmpty(task.MediaUrl))
-                                    {
-                                        <div class="mb-2">
-                                            <small class="text-muted">Media</small>
-                                            <div class="mt-1">
-                                                @if (task.MediaType == MediaTypeEnum.Image)
-                                                {
-                                                    <img src="@task.MediaUrl" alt="media" style="max-width:100%; border-radius:.25rem;" />
-                                                }
-                                                else if (task.MediaType == MediaTypeEnum.Video)
-                                                {
-                                                    <video controls style="max-width:100%; border-radius:.25rem;">
-                                                        <source src="@task.MediaUrl" />
-                                                    </video>
-                                                }
-                                                else
-                                                {
-                                                    <a href="@task.MediaUrl" target="_blank" rel="noopener">@task.MediaUrl</a>
-                                                }
-                                            </div>
-                                        </div>
-                                    }
-                                </div>
-                            </div>
-                        </div>
-                    }
-                </div>
-            </div>
-
-            <!-- FINALIZATE -->
-            <div class="col-md-6">
-                <h6 class="mb-3">Finalizate (@complete.Count())</h6>
-                <div id="completedList" class="list-group scroll-area">
-                    @foreach (var task in complete)
-                    {
-                        var id = task.Id;
-                        var collapseId = $"taskCollapse_{id}";
-                        <div class="list-group-item mb-2 p-0 task-row bg-light" data-task-id="@id" data-completed="true">
-                            <div class="d-flex align-items-center justify-content-between p-3">
-                                <div>
-                                    <div class="fw-semibold text-decoration-line-through">@task.Title</div>
-                                    <div class="small text-muted">@task.Project?.Title</div>
-                                </div>
-
-                                <div class="d-flex align-items-center">
-                                    <button class="btn btn-sm btn-outline-secondary me-2" data-bs-toggle="collapse" data-bs-target="#@collapseId" aria-expanded="false">Detalii</button>
-
-                                    <button class="btn btn-sm btn-outline-success js-toggle" data-id="@id" data-completed="true">Marchează în lucru</button>
-                                </div>
-                            </div>
-
-                            <div class="collapse" id="@collapseId">
-                                <div class="card card-body p-3">
-                                    <div class="mb-2"><small class="text-muted">Perioadă</small><div class="small">@task.StartDate.ToString("dd MMM yyyy") - @task.EndDate.ToString("dd MMM yyyy")</div></div>
-                                    <!-- Priority Removed -->
-                                    <div class="mb-2"><small class="text-muted">Status</small><div class="small">@task.Status</div></div>
-                                    <div class="mb-2"><small class="text-muted">Descriere</small><div class="small">@Html.Raw(Html.Encode(task.Description).Replace("\n","<br/>"))</div></div>
-
-                                    @if (!string.IsNullOrEmpty(task.MediaUrl))
-                                    {
-                                        <div class="mb-2">
-                                            <small class="text-muted">Media</small>
-                                            <div class="mt-1">
-                                                @if (task.MediaType == MediaTypeEnum.Image)
-                                                {
-                                                    <img src="@task.MediaUrl" alt="media" style="max-width:100%; border-radius:.25rem;" />
-                                                }
-                                                else if (task.MediaType == MediaTypeEnum.Video)
-                                                {
-                                                    <video controls style="max-width:100%; border-radius:.25rem;">
-                                                        <source src="@task.MediaUrl" />
-                                                    </video>
-                                                }
-                                                else
-                                                {
-                                                    <a href="@task.MediaUrl" target="_blank" rel="noopener">@task.MediaUrl</a>
-                                                }
-                                            </div>
-                                        </div>
-                                    }
-                                </div>
-                            </div>
-                        </div>
-                    }
-                </div>
-            </div>
-        </div>
-
-        <script>
-            (function() {
-                // preia tokenul antiforgery
-                const tokenInput = document.querySelector('#antiForgeryToken input[name="__RequestVerificationToken"]');
-                const token = tokenInput ? tokenInput.value : '';
-
-                const url = '@Url.Action("ToggleTaskCompletion", "Users")';
-
-                async function toggleTask(taskId, button) {
-                    button.disabled = true;
-                    try {
-                        const res = await fetch(url, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'RequestVerificationToken': token
-                            },
-                            body: JSON.stringify({ id: parseInt(taskId) })
-                        });
-
-                        if (!res.ok) {
-                            const txt = await res.text();
-                            throw new Error(txt || 'Server error');
-                        }
-
-                        const data = await res.json();
-                        if (!data.success) throw new Error(data?.error || 'Eroare');
-
-                        // muta elementul în listă
-                        const el = document.querySelector(`.task-row[data-task-id='${taskId}']`);
-                        if (!el) return;
-
-                        if (data.isCompleted) {
-                            el.dataset.completed = "true";
-                            el.classList.add('bg-light');
-                            el.querySelectorAll('.js-toggle').forEach(b => { b.textContent = 'Marchează în lucru'; b.dataset.completed = "true"; b.classList.remove('btn-warning'); b.classList.add('btn-outline-success'); });
-                            document.getElementById('completedList').appendChild(el);
-                        } else {
-                            el.dataset.completed = "false";
-                            el.classList.remove('bg-light');
-                            el.querySelectorAll('.js-toggle').forEach(b => { b.textContent = 'Marchează finalizat'; b.dataset.completed = "false"; b.classList.remove('btn-outline-success'); b.classList.add('btn-warning'); });
-                            document.getElementById('incompleteList').appendChild(el);
-                        }
-                    } catch (err) {
-                        console.error(err);
-                        alert('A apărut o eroare la actualizarea task-ului.');
-                    } finally {
-                        button.disabled = false;
-                    }
-                }
-
-                document.addEventListener('click', function (e) {
-                    const btn = e.target.closest('.js-toggle');
-                    if (!btn) return;
-                    e.preventDefault();
-                    const id = btn.dataset.id;
-                    toggleTask(id, btn);
-                });
-
-                // stiluri inițiale butoane
-                document.querySelectorAll('.js-toggle').forEach(b => {
-                    if (b.dataset.completed === "true") {
-                        b.classList.add('btn-outline-success');
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const searchInput = document.getElementById('projectSearch');
+        if(searchInput) {
+            searchInput.addEventListener('keyup', function() {
+                const filter = this.value.toLowerCase();
+                let hasVisible = false;
+                document.querySelectorAll('.project-item-col').forEach(item => {
+                    const title = item.querySelector('h6').innerText.toLowerCase();
+                    if (title.includes(filter)) {
+                        item.classList.remove('d-none');
+                        hasVisible = true;
                     } else {
-                        b.classList.add('btn-warning');
+                        item.classList.add('d-none');
                     }
                 });
-            })();
-        </script>
-    }
-    else
-    {
-        <p class="text-muted">Nu există task-uri asignate.</p>
-    }
-</div>
+                const noMsg = document.getElementById('noProjectsFound');
+                if(!hasVisible) noMsg.classList.remove('d-none');
+                else noMsg.classList.add('d-none');
+            });
+        }
 
-</div>
-        </div>
-    </div>
-</div>
+        const filterDropdown = document.getElementById('taskFilterProject');
+        if(filterDropdown){
+            filterDropdown.addEventListener('change', function() {
+                const selectedProjId = this.value;
+                document.querySelectorAll('.task-row').forEach(task => {
+                    const taskProjId = task.getAttribute('data-project-id');
+                    task.classList.toggle('d-none', selectedProjId !== 'all' && taskProjId !== selectedProjId);
+                });
+            });
+        }
+    });
+
+    function showToast(message, type) {
+        const toastContainer = document.querySelector('.toast-container');
+        const bgClass = type === 'success' ? 'text-bg-success' : 'text-bg-danger';
+        const icon = type === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill';
+        const el = document.createElement('div');
+        el.className = `toast align-items-center ${bgClass} border-0 mb-2`;
+        el.setAttribute('role', 'alert');
+        el.setAttribute('aria-live', 'assertive');
+        el.setAttribute('aria-atomic', 'true');
+        el.innerHTML = `<div class="d-flex"><div class="toast-body"><i class="bi ${icon} me-2"></i>${message}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>`;
+        toastContainer.appendChild(el);
+        const t = new bootstrap.Toast(el);
+        t.show();
+        el.addEventListener('hidden.bs.toast', () => el.remove());
+    }
+
+    (function() {
+        const tokenInput = document.querySelector('#antiForgeryToken input[name="__RequestVerificationToken"]');
+        const token = tokenInput ? tokenInput.value : '';
+        const url = '@Url.Action("ToggleTaskCompletion", "Users")';
+
+        async function toggleTask(taskId, button) {
+            if(button.classList.contains('disabled')) return;
+            button.classList.add('disabled');
+            button.style.opacity = '0.5';
+
+            try {
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+                    body: JSON.stringify({ id: parseInt(taskId) })
+                });
+
+                if (!res.ok) throw new Error();
+                const data = await res.json();
+                if (!data.success) throw new Error();
+
+                const card = document.querySelector(`.task-row[data-task-id='${taskId}']`);
+                if (!card) return;
+
+                card.style.transition = 'all 0.3s';
+                card.style.opacity = '0';
+                card.style.transform = 'translateX(20px)';
+
+                setTimeout(() => {
+                    if (data.isCompleted) {
+                        card.dataset.completed = "true";
+                        card.className = "task-card border-l-success task-row bg-light opacity-75";
+                        card.querySelector('h6').classList.add('text-decoration-line-through', 'text-muted');
+
+                        const btn = card.querySelector('.js-toggle');
+                        btn.dataset.completed = "true";
+                        btn.className = "btn btn-sm btn-icon btn-outline-warning border-0 rounded-circle js-toggle";
+                        btn.innerHTML = '<i class="bi bi-arrow-counterclockwise fs-5"></i>';
+                        btn.title = "Redeschide";
+
+                        const collapse = card.querySelector('.collapse');
+                        if(collapse) collapse.classList.remove('show');
+
+                        document.getElementById('completedList').prepend(card);
+                        showToast('Task marcat ca finalizat!', 'success');
+                    } else {
+                        card.dataset.completed = "false";
+                        card.className = "task-card border-l-primary task-row";
+                        card.querySelector('h6').classList.remove('text-decoration-line-through', 'text-muted');
+
+                        const btn = card.querySelector('.js-toggle');
+                        btn.dataset.completed = "false";
+                        btn.className = "btn btn-sm btn-icon btn-outline-success border-0 rounded-circle js-toggle";
+                        btn.innerHTML = '<i class="bi bi-circle fs-5"></i>';
+                        btn.title = "Finalizează";
+
+                        document.getElementById('incompleteList').prepend(card);
+                        showToast('Task reactivat cu succes!', 'success');
+                    }
+
+                    card.style.transform = 'translateX(0)';
+                    setTimeout(() => card.style.opacity = '1', 50);
+
+                    document.getElementById('count-incomplete').innerText = document.querySelectorAll('#incompleteList .task-row').length;
+                    document.getElementById('count-complete').innerText = document.querySelectorAll('#completedList .task-row').length;
+
+                    const currentFilter = document.getElementById('taskFilterProject').value;
+                    if(currentFilter !== 'all') {
+                        const tPid = card.getAttribute('data-project-id');
+                        card.classList.toggle('d-none', tPid !== currentFilter);
+                    }
+                }, 300);
+
+            } catch (err) {
+                showToast('Eroare de comunicare server.', 'error');
+            } finally {
+                setTimeout(() => { button.classList.remove('disabled'); button.style.opacity = '1'; }, 500);
+            }
+        }
+
+        document.addEventListener('click', function (e) {
+            const btn = e.target.closest('.js-toggle');
+            if (!btn) return;
+            e.preventDefault();
+            toggleTask(btn.dataset.id, btn);
+        });
+    })();
+</script>
